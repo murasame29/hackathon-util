@@ -11,7 +11,7 @@ import (
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/discordgo"
 	"github.com/murasame29/hackathon-util/internal/gs"
-	"github.com/murasame29/hackathon-util/internal/pkg/logger"
+	"github.com/murasame29/hackathon-util/pkg/logger"
 	"github.com/sourcegraph/conc"
 	"google.golang.org/api/option"
 )
