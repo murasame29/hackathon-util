@@ -11,7 +11,8 @@ const (
 
 type config struct {
 	Application struct {
-		Env Env `env:"ENV"`
+		Env     Env    `env:"ENV"`
+		Version string `env:"VERSION"`
 	}
 
 	Spreadsheets struct {
