@@ -21,7 +21,6 @@ jobs:
           password: ${{ secrets.HARBOR_PASSWORD }}
       - name: Build and push
         run: |
-          NODE_ENV=development docker build -t ${{ secrets.HARBOR_REGISTRY }}/${{ github.repository }}:${{ github.sha }} .
           docker push ${{ secrets.HARBOR_REGISTRY }}/${{ github.repository }}:${{ github.sha }}
         
   deploy:
