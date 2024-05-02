@@ -45,5 +45,5 @@ spec:
           secret:
             secretName: hackathon-util-secret
             items:
-              - key: google_application_credentials
+              - key: credential.json
                 path: credential.json
