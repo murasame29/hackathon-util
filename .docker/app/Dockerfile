@@ -5,7 +5,7 @@ COPY . .
 
 RUN go build -o main cmd/app/main.go
 
-FROM scratch AS runner
+FROM alpine AS runner
 WORKDIR /app
 
 COPY --from=builder /build/main .
@@ -14,4 +14,4 @@ ENV PORT=8080
 
 EXPOSE ${PORT}
 
-CMD ["./main"]
+CMD ["/main"]
