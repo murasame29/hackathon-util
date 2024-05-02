@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hackathon-util
+spec:
+  selector:
+    matchLabels:
+      app: hackathon-util
+  template:
+    metadata:
+      labels:
+        app: hackathon-util
+    spec:
+      containers:
+      - name: hackathon-util
+        image: gcr.io/google-containers/busybox
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+          - name: ENV
+            value: prod
+
+          - name: DISCORD_BOT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: discord_bot_token
+                name: hackathon-util-secret   
+
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            valueFrom:
+              configMapKeyRef:
+                key: google_application_credentials
+                name: hackathon-util-configmap
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - name: credential
+            mountPath: /app/credential.json
+            readOnly: true
+
+      volumes:
+        - name: credential
+          secret:
+            secretName: hackathon-util-secret
+            items:
+              - key: google_application_credentials
+                path: credential.json
