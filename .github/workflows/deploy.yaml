@@ -48,7 +48,7 @@ jobs:
           if (git diff --shortstat | grep '[0-9]'); then \
             git add .; \
             git commit -m "GitHub Action Push"; \
-            git push origin main; \
+            git push origin master; \
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
