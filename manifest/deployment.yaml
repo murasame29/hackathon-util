@@ -12,37 +12,34 @@ spec:
         app: hackathon-util
     spec:
       containers:
-      - name: hackathon-util
-        image: gcr.io/google-containers/busybox
-        resources:
-          requests:
-            memory: "32Mi"
-            cpu: "100m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        env:
-          - name: ENV
-            value: prod
-
-          - name: DISCORD_BOT_TOKEN
-            valueFrom:
-              secretKeyRef:
-                key: discord_bot_token
-                name: hackathon-util-secret   
-
-          - name: GOOGLE_APPLICATION_CREDENTIALS
-            valueFrom:
-              configMapKeyRef:
-                key: google_application_credentials
-                name: hackathon-util-configmap
-        ports:
-        - containerPort: 8080
-        volumeMounts:
-          - name: credential
-            mountPath: /app/credential.json
-            readOnly: true
-
+        - name: hackathon-util
+          image: harbor.seafood-dev.com/murasame29/hackathon-util:d17e9cfe20a9ced5d7d638aa4aadf0b5c9782ca5
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: ENV
+              value: prod
+            - name: DISCORD_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: discord_bot_token
+                  name: hackathon-util-secret
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              valueFrom:
+                configMapKeyRef:
+                  key: google_application_credentials
+                  name: hackathon-util-configmap
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: credential
+              mountPath: /app/credential.json
+              readOnly: true
       volumes:
         - name: credential
           secret:
