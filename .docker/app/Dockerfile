@@ -5,7 +5,7 @@ COPY . .
 
 RUN go build -o main cmd/app/main.go
 
-FROM ubuntu AS runner
+FROM scratch AS runner
 WORKDIR /app
 
 COPY --from=builder /build/main .
