@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/murasame29/hackathon-util/internal/application"
 )
@@ -26,22 +27,25 @@ func (h *Handler) Role(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
+	var (
+		err     error
+		message []string
+	)
 	switch req.Action {
 	case ActionTypeCreate:
-		err = h.app.CreateRole(r.Context(), application.CreateRoleParam{
+		message, err = h.app.CreateRole(r.Context(), application.CreateRoleParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,
 		})
 	case ActionTypeDelete:
-		err = h.app.DeleteRole(r.Context(), application.DeleteRoleParam{
+		message, err = h.app.DeleteRole(r.Context(), application.DeleteRoleParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,
 		})
 	case ActionTypeBind:
-		err = h.app.BindRole(r.Context(), application.BindRoleParam{
+		message, err = h.app.BindRole(r.Context(), application.BindRoleParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,
@@ -58,7 +62,7 @@ func (h *Handler) Role(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(&ChannelResponse{Message: "success"}); err != nil {
+	if err := json.NewEncoder(w).Encode(&ChannelResponse{Message: strings.Join(message, "\n")}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

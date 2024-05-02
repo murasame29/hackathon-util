@@ -38,6 +38,10 @@ func FromContext(ctx context.Context) *zap.Logger {
 	return logger
 }
 
+func Debug(ctx context.Context, msg string, fields ...zap.Field) {
+	FromContext(ctx).Debug(msg, fields...)
+}
+
 func Info(ctx context.Context, msg string, fields ...zap.Field) {
 	FromContext(ctx).Info(msg, fields...)
 }

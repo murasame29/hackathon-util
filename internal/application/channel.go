@@ -17,15 +17,16 @@ type CreateChannelParam struct {
 	Range         string
 }
 
-func (as *ApplicationService) CraeteChannel(ctx context.Context, param CreateChannelParam) error {
+func (as *ApplicationService) CraeteChannel(ctx context.Context, param CreateChannelParam) ([]string, error) {
 	var (
-		wg conc.WaitGroup
+		wg      conc.WaitGroup
+		message []string
 	)
 	defer wg.Wait()
 
 	values, err := as.gs.Read(param.SpreadSheetID, param.Range)
 	if err != nil {
-		return errors.Wrap(err, "failed to read sheet")
+		return nil, errors.Wrap(err, "failed to read sheet")
 	}
 
 	for _, value := range values {
@@ -35,42 +36,46 @@ func (as *ApplicationService) CraeteChannel(ctx context.Context, param CreateCha
 			continue
 		}
 
-		logger.Info(ctx, "creating channel ", logger.Field("role", teamName))
+		logger.Debug(ctx, "creating channel ", logger.Field("role", teamName))
 
 		// 雑談 , 会議 , vcのチャンネルを作る
 		wg.Go(func() {
-			logger.Info(ctx, "creating category", logger.Field("category", teamName))
+			logger.Debug(ctx, "creating category", logger.Field("category", teamName))
 			categoryID, err := as.ds.CreateChannelCategory(ctx, param.GuildID, teamName)
 			if err != nil {
 				logger.Error(ctx, "failed to create Category", logger.Field("err", err))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "Create category successful", logger.Field("category", teamName))
-			logger.Info(ctx, "creating channel", logger.Field("channel", "雑談"))
+			logger.Debug(ctx, "Create category successful", logger.Field("category", teamName))
+			logger.Debug(ctx, "creating channel", logger.Field("channel", "雑談"))
 
 			if _, err := as.ds.CreateChannelText(ctx, param.GuildID, categoryID, "雑談"); err != nil {
 				logger.Error(ctx, "failed to create channel", logger.Field("err", err))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "Create channel successful", logger.Field("channel", "雑談"))
-			logger.Info(ctx, "creating channel", logger.Field("channel", "会議"))
+			logger.Debug(ctx, "Create channel successful", logger.Field("channel", "雑談"))
+			logger.Debug(ctx, "creating channel", logger.Field("channel", "会議"))
 
 			if _, err := as.ds.CreateChannelText(ctx, param.GuildID, categoryID, "会議"); err != nil {
 				logger.Error(ctx, "failed to create channel", logger.Field("err", err))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "Create channel successful", logger.Field("channel", "会議"))
-			logger.Info(ctx, "creating channel", logger.Field("channel", "vc"))
+			logger.Debug(ctx, "Create channel successful", logger.Field("channel", "会議"))
+			logger.Debug(ctx, "creating channel", logger.Field("channel", "vc"))
 
 			if _, err := as.ds.CreateChannelVoice(ctx, param.GuildID, categoryID, "vc"); err != nil {
 				logger.Error(ctx, "failed to create channel", logger.Field("err", err))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "Create channel successful", logger.Field("channel", "vc"))
+			logger.Debug(ctx, "Create channel successful", logger.Field("channel", "vc"))
 		})
 	}
 
-	return nil
+	return message, nil
 }
 
 type DeleteChannelParam struct {
@@ -79,16 +84,16 @@ type DeleteChannelParam struct {
 	Range         string
 }
 
-func (as *ApplicationService) DeleteChannel(ctx context.Context, param DeleteChannelParam) error {
+func (as *ApplicationService) DeleteChannel(ctx context.Context, param DeleteChannelParam) ([]string, error) {
 	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
 	if err != nil {
-		return errors.Wrap(err, "failed to read sheet")
+		return nil, errors.Wrap(err, "failed to read sheet")
 	}
 
 	channels, err := as.ds.GetChannel(ctx, param.GuildID)
 	if err != nil {
 		logger.Error(ctx, "failed to get channels", logger.Field("err", err))
-		return err
+		return nil, err
 	}
 
 	roles := make(map[string]struct{})
@@ -125,21 +130,23 @@ func (as *ApplicationService) DeleteChannel(ctx context.Context, param DeleteCha
 	}
 
 	var (
-		wg conc.WaitGroup
+		wg      conc.WaitGroup
+		message []string
 	)
 	defer wg.Wait()
 
 	for _, deleteTargetChannelID := range deleteTargetChannelIDs {
 		wg.Go(func() {
 			time.Sleep(time.Second / 10)
-			logger.Info(ctx, "deleting channel ", logger.Field("channelId", deleteTargetChannelID))
+			logger.Debug(ctx, "deleting channel ", logger.Field("channelId", deleteTargetChannelID))
 
 			if err := as.ds.DeleteChannel(ctx, deleteTargetChannelID); err != nil {
 				logger.Error(ctx, "failed to delete channel", logger.Field("err", err))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "channel delete successful", logger.Field("channelId", deleteTargetChannelID))
+			logger.Debug(ctx, "channel delete successful", logger.Field("channelId", deleteTargetChannelID))
 		})
 	}
-	return nil
+	return message, nil
 }

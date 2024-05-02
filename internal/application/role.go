@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"strings"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
@@ -16,13 +16,16 @@ type CreateRoleParam struct {
 	Range         string
 }
 
-func (as *ApplicationService) CreateRole(ctx context.Context, param CreateRoleParam) error {
+func (as *ApplicationService) CreateRole(ctx context.Context, param CreateRoleParam) ([]string, error) {
 	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
 	if err != nil {
 		logger.Error(ctx, "failed to read spreadsheet", logger.Field("err", err))
-		return err
+		return nil, err
 	}
-	var wg conc.WaitGroup
+	var (
+		wg      conc.WaitGroup
+		message []string
+	)
 	defer wg.Wait()
 
 	for _, value := range values {
@@ -32,17 +35,18 @@ func (as *ApplicationService) CreateRole(ctx context.Context, param CreateRolePa
 			continue
 		}
 
-		logger.Info(ctx, "creating role ", logger.Field("role", teamName))
+		logger.Debug(ctx, "creating role ", logger.Field("role", teamName))
 
 		wg.Go(func() {
 			if err := as.ds.CreateRole(ctx, param.GuildID, teamName); err != nil {
 				logger.Error(ctx, "failed to create Role", logger.Field("role", teamName))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "Role Create Successful", logger.Field("role", teamName))
+			logger.Debug(ctx, "Role Create Successful", logger.Field("role", teamName))
 		})
 	}
-	return nil
+	return message, nil
 }
 
 type DeleteRoleParam struct {
@@ -51,20 +55,23 @@ type DeleteRoleParam struct {
 	Range         string
 }
 
-func (as *ApplicationService) DeleteRole(ctx context.Context, param DeleteRoleParam) error {
+func (as *ApplicationService) DeleteRole(ctx context.Context, param DeleteRoleParam) ([]string, error) {
 	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
 	if err != nil {
 		logger.Error(ctx, "Error reading spreadsheet", logger.Field("err", err))
-		return err
+		return nil, err
 	}
 
 	roles, err := as.ds.GetRoles(ctx, param.GuildID)
 	if err != nil {
 		logger.Error(ctx, "Error getting roles", logger.Field("err", err))
-		return err
+		return nil, err
 	}
 
-	var wg conc.WaitGroup
+	var (
+		wg      conc.WaitGroup
+		message []string
+	)
 	defer wg.Wait()
 
 	for _, value := range values {
@@ -73,23 +80,25 @@ func (as *ApplicationService) DeleteRole(ctx context.Context, param DeleteRolePa
 			continue
 		}
 
-		logger.Info(ctx, "delete to role ", logger.Field("role", teamName))
+		logger.Debug(ctx, "delete to role ", logger.Field("role", teamName))
 
 		wg.Go(func() {
 			roleID, ok := roles[strings.TrimSpace(teamName)]
 			if !ok {
 				logger.Error(ctx, "role not found", logger.Field("role", teamName))
+				message = append(message, fmt.Sprintf("role not found: %s", teamName))
 				return
 			}
 
 			if err := as.ds.DeleteRole(ctx, param.GuildID, roleID); err != nil {
-				log.Println(err)
+				logger.Error(ctx, "failed to delete Role", logger.Field("role", teamName))
+				message = append(message, err.Error())
 			}
 
-			logger.Info(ctx, "Role Delete Successful", logger.Field("role", teamName))
+			logger.Debug(ctx, "Role Delete Successful", logger.Field("role", teamName))
 		})
 	}
-	return nil
+	return message, nil
 }
 
 type BindRoleParam struct {
@@ -98,25 +107,28 @@ type BindRoleParam struct {
 	Range         string
 }
 
-func (as *ApplicationService) BindRole(ctx context.Context, param BindRoleParam) error {
+func (as *ApplicationService) BindRole(ctx context.Context, param BindRoleParam) ([]string, error) {
 	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
 	if err != nil {
 		logger.Error(ctx, "failed to read spreadsheet", logger.Field("err", err))
-		return err
+		return nil, err
 	}
 	users, err := as.ds.GetUsersAll(ctx, config.Config.Discord.GuildID)
 	if err != nil {
 		logger.Error(ctx, "failed to get users", logger.Field("err", err))
-		return err
+		return nil, err
 	}
 
 	roles, err := as.ds.GetRoles(ctx, config.Config.Discord.GuildID)
 	if err != nil {
 		logger.Error(ctx, "failed to get roles", logger.Field("err", err))
-		return err
+		return nil, err
 	}
 
-	var wg conc.WaitGroup
+	var (
+		wg      conc.WaitGroup
+		message []string
+	)
 	defer wg.Wait()
 
 	for _, value := range values {
@@ -143,20 +155,22 @@ func (as *ApplicationService) BindRole(ctx context.Context, param BindRoleParam)
 			userID, ok := users[memer]
 			if !ok {
 				logger.Error(ctx, "failed to get user", logger.Field("user", memer))
+				message = append(message, fmt.Sprintf("user not found: %s", memer))
 				continue
 			}
 
 			wg.Go(func() {
-				logger.Info(ctx, "add role", logger.Field("user", memer), logger.Field("role", role))
+				logger.Debug(ctx, "add role", logger.Field("user", memer), logger.Field("role", role))
 
 				if err := as.ds.BindRole(ctx, config.Config.Discord.GuildID, userID, roleID); err != nil {
 					logger.Error(ctx, "failed to add role", logger.Field("err", err))
+					message = append(message, err.Error())
 				}
 
-				logger.Info(ctx, "role add successful", logger.Field("user", memer), logger.Field("role", role))
+				logger.Debug(ctx, "role add successful", logger.Field("user", memer), logger.Field("role", role))
 			})
 		}
 	}
 
-	return nil
+	return message, nil
 }

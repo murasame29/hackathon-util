@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/murasame29/hackathon-util/internal/application"
 )
@@ -26,16 +27,19 @@ func (h *Handler) Channel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
+	var (
+		err     error
+		message []string
+	)
 	switch req.Action {
 	case ActionTypeCreate:
-		err = h.app.CraeteChannel(r.Context(), application.CreateChannelParam{
+		message, err = h.app.CraeteChannel(r.Context(), application.CreateChannelParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,
 		})
 	case ActionTypeDelete:
-		err = h.app.DeleteChannel(r.Context(), application.DeleteChannelParam{
+		message, err = h.app.DeleteChannel(r.Context(), application.DeleteChannelParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,
@@ -52,7 +56,7 @@ func (h *Handler) Channel(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(&ChannelResponse{Message: "success"}); err != nil {
+	if err := json.NewEncoder(w).Encode(&ChannelResponse{Message: strings.Join(message, "\n")}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
