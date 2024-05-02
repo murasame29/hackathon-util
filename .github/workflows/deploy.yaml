@@ -1,0 +1,55 @@
+name: deploy to kubernetes
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build and image
+        run: |
+          docker build -t ${{ secrets.HARBOR_REGISTRY }}/${{ github.repository }}:${{ github.sha }} -f .docker/app/Dockerfile .
+      - name: login docker registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY  }}
+          username: ${{ secrets.HARBOR_USERNAME  }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+      - name: Build and push
+        run: |
+          NODE_ENV=development docker build -t ${{ secrets.HARBOR_REGISTRY }}/${{ github.repository }}:${{ github.sha }} .
+          docker push ${{ secrets.HARBOR_REGISTRY }}/${{ github.repository }}:${{ github.sha }}
+        
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod a+x /usr/local/bin/yq
+
+      - name: Checkout another repo
+        uses: actions/checkout@v3  
+    
+      - name: Change manifest
+        run: |
+          cd manifest
+          yq -i '.spec.template.spec.containers[0].image = "${{ secrets.HARBOR_REGISTRY }}/${{ github.repository }}:${{ github.sha }}"' 'deployment.yaml'
+      
+      - name: push repository
+        run: |
+          git config --global user.email "${{ secrets.EMAIL_GITHUB }}"
+          git config --global user.name "${{ secrets.USERNAME_GITHUB }}"
+
+          if (git diff --shortstat | grep '[0-9]'); then \
+            git add .; \
+            git commit -m "GitHub Action Push"; \
+            git push origin main; \
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
