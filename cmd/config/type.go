@@ -13,6 +13,7 @@ type config struct {
 	Application struct {
 		Env     Env    `env:"ENV"`
 		Version string `env:"VERSION"`
+		Addr    string `env:"SERVER_ADDR"`
 	}
 
 	Spreadsheets struct {
@@ -23,5 +24,9 @@ type config struct {
 	Discord struct {
 		BotToken string `env:"DISCORD_BOT_TOKEN"`
 		GuildID  string `env:"DISCORD_GUILD_ID"`
+	}
+
+	Google struct {
+		Credentials string `env:"GOOGLE_APPLICATION_CREDENTIALS"`
 	}
 }

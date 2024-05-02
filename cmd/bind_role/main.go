@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
-	"github.com/murasame29/hackathon-util/internal/discordgo"
-	"github.com/murasame29/hackathon-util/internal/gs"
+	"github.com/murasame29/hackathon-util/internal/gateways/discordgo"
+	"github.com/murasame29/hackathon-util/internal/gateways/gs"
 	"github.com/murasame29/hackathon-util/pkg/logger"
 	"github.com/sourcegraph/conc"
 	"google.golang.org/api/option"
@@ -66,11 +66,7 @@ func run() error {
 		return err
 	}
 
-	dg, err := discordgo.New()
-	if err != nil {
-		logger.Error(ctx, "failed to create discord client", logger.Field("err", err))
-		return err
-	}
+	dg := discordgo.New()
 
 	users, err := dg.GetUsersAll(ctx, config.Config.Discord.GuildID)
 	if err != nil {
@@ -78,7 +74,7 @@ func run() error {
 		return err
 	}
 
-	roles, err := dg.GetRoles(ctx)
+	roles, err := dg.GetRoles(ctx, config.Config.Discord.GuildID)
 	if err != nil {
 		logger.Error(ctx, "failed to get roles", logger.Field("err", err))
 		return err

@@ -6,14 +6,20 @@ import (
 
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/handler"
+	"github.com/murasame29/hackathon-util/internal/router/middleware"
 )
 
 type Router struct {
 	mux *http.ServeMux
+
+	handler *handler.Handler
 }
 
-func NewRoute() http.Handler {
-	router := &Router{mux: http.NewServeMux()}
+func NewRoute(handler *handler.Handler) http.Handler {
+	router := &Router{
+		mux:     http.NewServeMux(),
+		handler: handler,
+	}
 
 	router.common()
 
@@ -39,14 +45,22 @@ func (r *Router) common() {
 }
 
 func (r *Router) DiscordOps() {
-	// create channel
-	r.mux.HandleFunc("POST /discord/channel", handler.CreateChannel)
-	// delete channel
-	r.mux.HandleFunc("DELETE /discord/channel", handler.DeleteChannel)
-	// create role
-	r.mux.HandleFunc("POST /discord/role", handler.CreateRole)
-	// delete role
-	r.mux.HandleFunc("DELETE /discord/channel", handler.DeleteRole)
+	// discord channel control
+	r.mux.Handle("POST /discord/channel", middleware.BuildChain(
+		http.HandlerFunc(r.handler.Channel),
+		middleware.LoggerInContext,
+		middleware.AccessLog,
+	))
+	// discord role control
+	r.mux.Handle("POST /discord/role", middleware.BuildChain(
+		http.HandlerFunc(r.handler.Role),
+		middleware.LoggerInContext,
+		middleware.AccessLog,
+	))
 	// sync
-	r.mux.HandleFunc("POST /discord/sync", handler.Sync)
+	r.mux.Handle("POST /discord/sync", middleware.BuildChain(
+		http.HandlerFunc(r.handler.Sync),
+		middleware.LoggerInContext,
+		middleware.AccessLog,
+	))
 }

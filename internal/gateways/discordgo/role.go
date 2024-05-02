@@ -5,13 +5,12 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/cockroachdb/errors"
-	"github.com/murasame29/hackathon-util/cmd/config"
 
 	"k8s.io/utils/ptr"
 )
 
-func (ds *DiscordSession) CreateRole(ctx context.Context, roleName string) error {
-	_, err := ds.ss.GuildRoleCreate(config.Config.Discord.GuildID, &discordgo.RoleParams{
+func (ds *DiscordSession) CreateRole(ctx context.Context, serverID, roleName string) error {
+	_, err := ds.ss.GuildRoleCreate(serverID, &discordgo.RoleParams{
 		Name:  roleName,
 		Color: ptr.To(640000),
 	}, discordgo.WithContext(ctx))
@@ -23,8 +22,8 @@ func (ds *DiscordSession) CreateRole(ctx context.Context, roleName string) error
 	return nil
 }
 
-func (ds *DiscordSession) GetRoles(ctx context.Context) (map[string]string, error) {
-	roles, err := ds.ss.GuildRoles(config.Config.Discord.GuildID, discordgo.WithContext(ctx))
+func (ds *DiscordSession) GetRoles(ctx context.Context, serverID string) (map[string]string, error) {
+	roles, err := ds.ss.GuildRoles(serverID, discordgo.WithContext(ctx))
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting roles")
 	}
@@ -37,8 +36,8 @@ func (ds *DiscordSession) GetRoles(ctx context.Context) (map[string]string, erro
 	return roleMap, nil
 }
 
-func (ds *DiscordSession) DeleteRole(ctx context.Context, roleID string) error {
-	err := ds.ss.GuildRoleDelete(config.Config.Discord.GuildID, roleID, discordgo.WithContext(ctx))
+func (ds *DiscordSession) DeleteRole(ctx context.Context, serverID, roleID string) error {
+	err := ds.ss.GuildRoleDelete(serverID, roleID, discordgo.WithContext(ctx))
 
 	if err != nil {
 		return errors.Wrapf(err, "error deleting role %s", roleID)

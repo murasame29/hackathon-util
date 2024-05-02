@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
-	"github.com/murasame29/hackathon-util/internal/discordgo"
-	"github.com/murasame29/hackathon-util/internal/gs"
+	"github.com/murasame29/hackathon-util/internal/gateways/discordgo"
+	"github.com/murasame29/hackathon-util/internal/gateways/gs"
 	"github.com/murasame29/hackathon-util/pkg/logger"
 	"github.com/sourcegraph/conc"
 	"google.golang.org/api/option"
@@ -65,13 +65,9 @@ func run() error {
 		return err
 	}
 
-	dg, err := discordgo.New()
-	if err != nil {
-		logger.Error(ctx, "Error creating discord client", logger.Field("err", err))
-		return err
-	}
+	dg := discordgo.New()
 
-	roles, err := dg.GetRoles(ctx)
+	roles, err := dg.GetRoles(ctx, config.Config.Discord.GuildID)
 	if err != nil {
 		logger.Error(ctx, "Error getting roles", logger.Field("err", err))
 		return err
@@ -102,7 +98,7 @@ func run() error {
 				return
 			}
 
-			if err := dg.DeleteRole(ctx, roleID); err != nil {
+			if err := dg.DeleteRole(ctx, config.Config.Discord.GuildID, roleID); err != nil {
 				log.Println(err)
 			}
 

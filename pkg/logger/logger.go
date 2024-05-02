@@ -10,8 +10,9 @@ import (
 
 type LoggerKey struct{}
 
-func NewLoggerWithContext(ctx context.Context) context.Context {
+func NewLogger() *zap.Logger {
 	var logger *zap.Logger
+
 	switch config.Config.Application.Env {
 	case config.Dev:
 		logger, _ = zap.NewDevelopment(zap.WithCaller(false))
@@ -21,11 +22,20 @@ func NewLoggerWithContext(ctx context.Context) context.Context {
 		logger, _ = zap.NewDevelopment(zap.WithCaller(false))
 	}
 
-	return context.WithValue(ctx, LoggerKey{}, logger)
+	return logger
+}
+
+func NewLoggerWithContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, LoggerKey{}, NewLogger())
 }
 
 func FromContext(ctx context.Context) *zap.Logger {
-	return ctx.Value(LoggerKey{}).(*zap.Logger)
+	logger, ok := ctx.Value(LoggerKey{}).(*zap.Logger)
+	if !ok {
+		return NewLogger()
+	}
+
+	return logger
 }
 
 func Info(ctx context.Context, msg string, fields ...zap.Field) {

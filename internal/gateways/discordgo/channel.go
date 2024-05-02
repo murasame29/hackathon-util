@@ -5,7 +5,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/cockroachdb/errors"
-	"github.com/murasame29/hackathon-util/cmd/config"
 )
 
 type CreateChannelParams struct {
@@ -13,7 +12,7 @@ type CreateChannelParams struct {
 }
 
 func (ds *DiscordSession) CreateChannelCategory(ctx context.Context, serverID string, name string) (string, error) {
-	channel, err := ds.ss.GuildChannelCreate(config.Config.Discord.GuildID, name, discordgo.ChannelTypeGuildCategory, discordgo.WithContext(ctx))
+	channel, err := ds.ss.GuildChannelCreate(serverID, name, discordgo.ChannelTypeGuildCategory, discordgo.WithContext(ctx))
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create channel category")
 	}
@@ -22,7 +21,7 @@ func (ds *DiscordSession) CreateChannelCategory(ctx context.Context, serverID st
 }
 
 func (ds *DiscordSession) CreateChannelText(ctx context.Context, serverID, categoryID, name string) (string, error) {
-	channel, err := ds.ss.GuildChannelCreateComplex(config.Config.Discord.GuildID, discordgo.GuildChannelCreateData{
+	channel, err := ds.ss.GuildChannelCreateComplex(serverID, discordgo.GuildChannelCreateData{
 		Name:     name,
 		Type:     discordgo.ChannelTypeGuildText,
 		ParentID: categoryID,
@@ -35,7 +34,7 @@ func (ds *DiscordSession) CreateChannelText(ctx context.Context, serverID, categ
 }
 
 func (ds *DiscordSession) CreateChannelVoice(ctx context.Context, serverID, categoryID, name string) (string, error) {
-	channel, err := ds.ss.GuildChannelCreateComplex(config.Config.Discord.GuildID, discordgo.GuildChannelCreateData{
+	channel, err := ds.ss.GuildChannelCreateComplex(serverID, discordgo.GuildChannelCreateData{
 		Name:      name,
 		ParentID:  categoryID,
 		Type:      discordgo.ChannelTypeGuildVoice,
@@ -58,8 +57,8 @@ func (ds *DiscordSession) MoveCategory(ctx context.Context, categoryID, channelI
 	return nil
 }
 
-func (ds *DiscordSession) GetChannel(ctx context.Context) ([]*discordgo.Channel, error) {
-	channels, err := ds.ss.GuildChannels(config.Config.Discord.GuildID, discordgo.WithContext(ctx))
+func (ds *DiscordSession) GetChannel(ctx context.Context, serverID string) ([]*discordgo.Channel, error) {
+	channels, err := ds.ss.GuildChannels(serverID, discordgo.WithContext(ctx))
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get channels")
 	}

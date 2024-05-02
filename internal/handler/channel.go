@@ -1,11 +1,59 @@
 package handler
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
 
-func CreateChannel(w http.ResponseWriter, r *http.Request) {
+	"github.com/murasame29/hackathon-util/internal/application"
+)
 
+type ChannelRequest struct {
+	Action        ActionType `json:"action"`
+	GuildID       string     `json:"guild_id"`
+	SpreadSheetID string     `json:"spread_sheet_id"`
+	SpreadRange   string     `json:"spread_range"`
 }
 
-func DeleteChannel(w http.ResponseWriter, r *http.Request) {
+type ChannelResponse struct {
+	Message string `json:"message"`
+}
 
+func (h *Handler) Channel(w http.ResponseWriter, r *http.Request) {
+	var req ChannelRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var err error
+	switch req.Action {
+	case ActionTypeCreate:
+		err = h.app.CraeteChannel(r.Context(), application.CreateChannelParam{
+			GuildID:       req.GuildID,
+			SpreadSheetID: req.SpreadSheetID,
+			Range:         req.SpreadRange,
+		})
+	case ActionTypeDelete:
+		err = h.app.DeleteChannel(r.Context(), application.DeleteChannelParam{
+			GuildID:       req.GuildID,
+			SpreadSheetID: req.SpreadSheetID,
+			Range:         req.SpreadRange,
+		})
+	default:
+		http.Error(w, "invalid action", http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(&ChannelResponse{Message: "success"}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
