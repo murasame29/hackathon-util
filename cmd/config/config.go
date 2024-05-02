@@ -6,8 +6,10 @@ import (
 )
 
 func LoadEnv(filePath ...string) error {
-	if err := godotenv.Load(filePath...); err != nil {
-		return err
+	if len(filePath) > 0 {
+		if err := godotenv.Load(filePath...); err != nil {
+			return err
+		}
 	}
 
 	config := config{}

@@ -3,15 +3,15 @@ WORKDIR /build
 
 COPY . .
 
-RUN go build -o app ./cmd/app/main.go
+RUN go build -o main cmd/app/main.go
 
-FROM alpine:latest AS app
+FROM ubuntu AS runner
 WORKDIR /app
 
-COPY --from=builder ./build/app /app
+COPY --from=builder /build/main .
 
 ENV PORT=8080
 
 EXPOSE ${PORT}
 
-CMD ["/app"]
+CMD ["./main"]
