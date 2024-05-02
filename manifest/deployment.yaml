@@ -33,7 +33,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: google_application_credentials
-                  name: hackathon-util-configmap
+                  name: hackathon-util-config
           ports:
             - containerPort: 8080
           volumeMounts:
