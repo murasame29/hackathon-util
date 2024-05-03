@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: hackathon-util
-          image: harbor.seafood-dev.com/murasame29/hackathon-util:5e39ba1cf0a08c9ff33b0de2bc37932295bbdaae
+          image: harbor.seafood-dev.com/murasame29/hackathon-util:87db4f4e4e5aafea9bfe8f0ad8fe8d595ab8a512
           resources:
             requests:
               memory: "32Mi"
