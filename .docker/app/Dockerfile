@@ -14,4 +14,4 @@ ENV PORT=8080
 
 EXPOSE ${PORT}
 
-CMD ["/main"]
+CMD ["/app/main"]
