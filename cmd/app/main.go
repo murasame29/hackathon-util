@@ -44,6 +44,10 @@ func main() {
 func run() error {
 	ctx := logger.NewLoggerWithContext(context.Background())
 
+	// show all dir
+	log.Println(os.Getwd())
+	search()
+
 	handler := container.NewContainer()
 
 	server.
@@ -51,4 +55,18 @@ func run() error {
 		RunWithGraceful(ctx)
 
 	return nil
+}
+
+func search() {
+	dir, err := os.ReadDir(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, d := range dir {
+		if d.IsDir() {
+			search()
+		}
+		log.Println("f:", d.Name())
+	}
 }
