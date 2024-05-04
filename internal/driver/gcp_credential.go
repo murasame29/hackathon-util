@@ -14,6 +14,15 @@ func NewGCPCredential() option.ClientOption {
 	}
 
 	if _, err := os.Open(config.Config.Google.Credentials); err != nil {
+		de, err := os.ReadDir(".")
+		if err != nil {
+			log.Println(err)
+		}
+
+		for _, d := range de {
+			log.Println(d.Name())
+		}
+
 		log.Println(err)
 	}
 	return option.WithCredentialsFile(config.Config.Google.Credentials)
