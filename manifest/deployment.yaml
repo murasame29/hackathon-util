@@ -24,11 +24,16 @@ spec:
           env:
             - name: ENV
               value: prod
+            
+            - name: SERVER_ADDR
+              value: 0.0.0.0:8080
+
             - name: DISCORD_BOT_TOKEN
               valueFrom:
                 secretKeyRef:
                   key: discord_bot_token
                   name: hackathon-util-secret
+                  
             - name: GOOGLE_APPLICATION_CREDENTIALS
               valueFrom:
                 configMapKeyRef:
