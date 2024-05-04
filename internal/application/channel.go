@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/pkg/logger"
 	"github.com/sourcegraph/conc"
 )
@@ -85,7 +84,7 @@ type DeleteChannelParam struct {
 }
 
 func (as *ApplicationService) DeleteChannel(ctx context.Context, param DeleteChannelParam) ([]string, error) {
-	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
+	values, err := as.gs.Read(param.SpreadSheetID, param.Range)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read sheet")
 	}

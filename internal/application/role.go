@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/pkg/logger"
 	"github.com/sourcegraph/conc"
 )
@@ -17,7 +16,7 @@ type CreateRoleParam struct {
 }
 
 func (as *ApplicationService) CreateRole(ctx context.Context, param CreateRoleParam) ([]string, error) {
-	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
+	values, err := as.gs.Read(param.SpreadSheetID, param.Range)
 	if err != nil {
 		logger.Error(ctx, "failed to read spreadsheet", logger.Field("err", err))
 		return nil, err
@@ -56,7 +55,7 @@ type DeleteRoleParam struct {
 }
 
 func (as *ApplicationService) DeleteRole(ctx context.Context, param DeleteRoleParam) ([]string, error) {
-	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
+	values, err := as.gs.Read(param.SpreadSheetID, param.Range)
 	if err != nil {
 		logger.Error(ctx, "Error reading spreadsheet", logger.Field("err", err))
 		return nil, err
@@ -108,18 +107,18 @@ type BindRoleParam struct {
 }
 
 func (as *ApplicationService) BindRole(ctx context.Context, param BindRoleParam) ([]string, error) {
-	values, err := as.gs.Read(config.Config.Spreadsheets.ID, config.Config.Spreadsheets.Range)
+	values, err := as.gs.Read(param.SpreadSheetID, param.Range)
 	if err != nil {
 		logger.Error(ctx, "failed to read spreadsheet", logger.Field("err", err))
 		return nil, err
 	}
-	users, err := as.ds.GetUsersAll(ctx, config.Config.Discord.GuildID)
+	users, err := as.ds.GetUsersAll(ctx, param.GuildID)
 	if err != nil {
 		logger.Error(ctx, "failed to get users", logger.Field("err", err))
 		return nil, err
 	}
 
-	roles, err := as.ds.GetRoles(ctx, config.Config.Discord.GuildID)
+	roles, err := as.ds.GetRoles(ctx, param.GuildID)
 	if err != nil {
 		logger.Error(ctx, "failed to get roles", logger.Field("err", err))
 		return nil, err
@@ -162,7 +161,7 @@ func (as *ApplicationService) BindRole(ctx context.Context, param BindRoleParam)
 			wg.Go(func() {
 				logger.Debug(ctx, "add role", logger.Field("user", memer), logger.Field("role", role))
 
-				if err := as.ds.BindRole(ctx, config.Config.Discord.GuildID, userID, roleID); err != nil {
+				if err := as.ds.BindRole(ctx, param.GuildID, userID, roleID); err != nil {
 					logger.Error(ctx, "failed to add role", logger.Field("err", err))
 					message = append(message, err.Error())
 				}
