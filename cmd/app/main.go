@@ -60,7 +60,7 @@ func run() error {
 func search() {
 	dir, err := os.ReadDir(".")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	for _, d := range dir {
