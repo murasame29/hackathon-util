@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/container"
@@ -44,10 +43,6 @@ func main() {
 
 func run() error {
 	ctx := logger.NewLoggerWithContext(context.Background())
-
-	// show all dir
-	log.Println(os.Getwd())
-	time.Sleep(time.Hour)
 
 	handler := container.NewContainer()
 
