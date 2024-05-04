@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: hackathon-util
-          image: harbor.seafood-dev.com/murasame29/hackathon-util:2c75a6c82b4e738003501bce862025d569c9786d
+          image: harbor.seafood-dev.com/murasame29/hackathon-util:b14238881e2e598134f47d340e368f08808dfa85
           resources:
             requests:
               memory: "32Mi"
@@ -24,16 +24,13 @@ spec:
           env:
             - name: ENV
               value: prod
-            
             - name: SERVER_ADDR
               value: 0.0.0.0:8080
-
             - name: DISCORD_BOT_TOKEN
               valueFrom:
                 secretKeyRef:
                   key: discord_bot_token
                   name: hackathon-util-secret
-                  
             - name: GOOGLE_APPLICATION_CREDENTIALS
               valueFrom:
                 configMapKeyRef:
