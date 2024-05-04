@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/container"
@@ -46,7 +47,7 @@ func run() error {
 
 	// show all dir
 	log.Println(os.Getwd())
-	search()
+	time.Sleep(time.Hour)
 
 	handler := container.NewContainer()
 
@@ -55,18 +56,4 @@ func run() error {
 		RunWithGraceful(ctx)
 
 	return nil
-}
-
-func search() {
-	dir, err := os.ReadDir(".")
-	if err != nil {
-		log.Println(err)
-	}
-
-	for _, d := range dir {
-		if d.IsDir() {
-			search()
-		}
-		log.Println("f:", d.Name())
-	}
 }
