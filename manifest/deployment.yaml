@@ -38,11 +38,11 @@ spec:
             - containerPort: 8080
           volumeMounts:
             - name: credential
-              mountPath: /app
+              mountPath: /
       volumes:
         - name: credential
           secret:
             secretName: hackathon-util-secret
             items:
               - key: credential.json
-                path: .
+                path: ./app
