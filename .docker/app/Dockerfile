@@ -9,4 +9,4 @@ COPY --from=builder /build/main /app/main
 
 EXPOSE 8080
 
-CMD [ "./app/main"]
+CMD [ "/app/main"]
