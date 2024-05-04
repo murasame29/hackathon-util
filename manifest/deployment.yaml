@@ -45,4 +45,4 @@ spec:
             secretName: hackathon-util-secret
             items:
               - key: credential.json
-                path: credential.json
+                path: .
