@@ -1,12 +1,15 @@
-FROM golang:1.22.2 AS builder
-WORKDIR /build
-COPY . .
-RUN go build -o main ./cmd/app/main.go
-
-FROM alpine:3.17
+FROM golang:1.22.2 AS go
 WORKDIR /app
-COPY --from=builder /build/main /app/main
+COPY go.mod go.sum ./
+RUN go mod download 
 
-EXPOSE 8080
+COPY . .
 
-CMD [ "/app/main"]
+RUN go build -o main cmd/app/main.go
+
+FROM ubuntu:latest
+WORKDIR /app
+COPY --from=go /app/main .
+USER 1001
+
+CMD ["/app/main"]
