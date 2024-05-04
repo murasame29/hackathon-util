@@ -19,6 +19,9 @@ func NewGCPCredential() option.ClientOption {
 			log.Println(err)
 		}
 
+		log.Println("credentials file not found")
+		log.Println("de;", de)
+
 		for _, d := range de {
 			log.Println(d.Name())
 		}
