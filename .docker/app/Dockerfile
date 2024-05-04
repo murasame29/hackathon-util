@@ -9,6 +9,7 @@ RUN go build -o main cmd/app/main.go
 
 FROM ubuntu:latest
 WORKDIR /app
+COPY --from=go /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=go /app/main .
 USER 1001
 
