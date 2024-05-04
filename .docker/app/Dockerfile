@@ -4,8 +4,9 @@ COPY . .
 RUN go build -o main ./cmd/app/main.go
 
 FROM alpine:3.17
-COPY --from=builder /build/main .
+WORKDIR /app
+COPY --from=builder /build/main /app/main
 
 EXPOSE 8080
 
-CMD [ "./main"]
+CMD [ "./app/main"]
