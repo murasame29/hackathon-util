@@ -23,7 +23,7 @@ spec:
               cpu: "500m"
           env:
             - name: ENV
-              value: prod
+              value: dev
             - name: SERVER_ADDR
               value: 0.0.0.0:8080
             - name: DISCORD_BOT_TOKEN
