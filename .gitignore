@@ -1,3 +1,4 @@
 .env
 credential.json
 env.yaml
+.bin

@@ -25,4 +25,13 @@ run: build
 	docker compose up
 
 rund: build
-	docker compose up
+	docker compose up -d
+
+build-sheetless: 
+	docker compose -f sheetless.compose.yaml build
+
+run-sheetless: build-sheetless
+	docker compose -f sheetless.compose.yaml up 
+
+rund-sheetless: build-sheetless
+	docker compose -f sheetless.compose.yaml up -d

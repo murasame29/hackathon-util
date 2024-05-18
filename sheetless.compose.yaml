@@ -1,8 +1,8 @@
 services:
-  bots:
+  bots-sheetless:
     build:
       context: .docker/app
-      dockerfile: local.Dockerfile
+      dockerfile: local.sheet-api.Dockerfile
     restart: always
     volumes:
       - ./:/app
