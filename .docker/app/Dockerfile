@@ -7,10 +7,9 @@ COPY . .
 
 RUN go build -o /bin/app cmd/app/main.go
 
-# リリースステージ
 FROM gcr.io/distroless/base-debian12:nonroot
-
-COPY --from=builder /bin/app /bin/app
+WORKDIR /app
+COPY --from=builder /bin/app /app/app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-ENTRYPOINT ["/bin/app"]
+ENTRYPOINT ["/app/app"]
