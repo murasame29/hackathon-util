@@ -33,6 +33,7 @@ func (dh *DiscordHandler) Open(ctx context.Context) error {
 }
 
 func (dh *DiscordHandler) createCommand() {
+
 	commands := []*discordgo.ApplicationCommand{
 		{
 			Name: "health",
@@ -41,6 +42,7 @@ func (dh *DiscordHandler) createCommand() {
 			// of the command.
 			Description: "health check commnad",
 		},
+		BreakoutRoomCommand,
 	}
 	id := dh.ss.State.User.ID
 	guildIDs := config.Config.Discord.GuildID
@@ -57,7 +59,8 @@ func (dh *DiscordHandler) createCommand() {
 
 func (dh *DiscordHandler) implCommand() {
 	implCommand := map[string]func(*discordgo.Session, *discordgo.InteractionCreate){
-		"health": dh.Health,
+		"health":                 dh.Health,
+		BreakoutRoomCommand.Name: dh.BreakoutRoom,
 	}
 
 	dh.ss.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
