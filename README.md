@@ -40,19 +40,3 @@ DISCORD_GUILD_ID=                                                      # 対象�
 4. サービス アカウントから保存されたSAを選択 -> キー -> 鍵を追加 -> 新しい鍵 -> json を選択
 5. 生成されたjsonを落として、hackathon-utilの直下に"credential.json"として保存 
 
-### 実行方法
-
-```bash
-# ロールを作る
-make create_role
-# ロールを削除する
-make delete_role
-# チャンネルを作る
-make create_channel
-# チャンネルを削除する
-make delete_channel
-# ロールをバインドする
-make bind_role
-# 同期する (delete role -> create role -> bind role)の順に実行するだけ
-make sync_role
-```

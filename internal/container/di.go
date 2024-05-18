@@ -5,6 +5,7 @@ import (
 
 	"github.com/murasame29/hackathon-util/internal/application"
 	"github.com/murasame29/hackathon-util/internal/driver"
+	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
 	"github.com/murasame29/hackathon-util/internal/gateways/discordgo"
 	"github.com/murasame29/hackathon-util/internal/gateways/gs"
 	"github.com/murasame29/hackathon-util/internal/handler"
@@ -27,6 +28,7 @@ func NewContainer() http.Handler {
 		{discordgo.New, []dig.ProvideOption{}},
 		{gs.New, []dig.ProvideOption{}},
 		{router.NewRoute, []dig.ProvideOption{}},
+		{discord.NewHandler, []dig.ProvideOption{}},
 		{handler.NewHandler, []dig.ProvideOption{}},
 		{application.NewApplicationService, []dig.ProvideOption{}},
 	}
@@ -51,8 +53,10 @@ func NewSheetLessContainer() http.Handler {
 	Container = dig.New()
 
 	args := []provideArg{
+		{driver.NewDiscordSession, []dig.ProvideOption{}},
 		{discordgo.New, []dig.ProvideOption{}},
 		{router.NewRoute, []dig.ProvideOption{}},
+		{discord.NewHandler, []dig.ProvideOption{}},
 		{handler.NewHandler, []dig.ProvideOption{}},
 		{application.NewSheetLessApplicationService, []dig.ProvideOption{}},
 	}
@@ -71,4 +75,8 @@ func NewSheetLessContainer() http.Handler {
 	}
 
 	return handler
+}
+
+func Provide(fn any) error {
+	return Container.Invoke(fn)
 }
