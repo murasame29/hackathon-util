@@ -36,6 +36,11 @@ spec:
                 configMapKeyRef:
                   key: google_application_credentials
                   name: hackathon-util-config
+            - name: DISCORD_GUILD_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: discord_guild_ids
+                  name: hackathon-util-config
           ports:
             - containerPort: 8080
           volumeMounts:
