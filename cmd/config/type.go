@@ -22,8 +22,8 @@ type config struct {
 	}
 
 	Discord struct {
-		BotToken string `env:"DISCORD_BOT_TOKEN"`
-		GuildID  string `env:"DISCORD_GUILD_ID"`
+		BotToken string   `env:"DISCORD_BOT_TOKEN"`
+		GuildID  []string `env:"DISCORD_GUILD_ID" envSeparator:","`
 	}
 
 	Google struct {

@@ -43,13 +43,14 @@ func (dh *DiscordHandler) createCommand() {
 		},
 	}
 	id := dh.ss.State.User.ID
-	guildID := config.Config.Discord.GuildID
+	guildIDs := config.Config.Discord.GuildID
 	for _, command := range commands {
-
-		_, err := dh.ss.ApplicationCommandCreate(id, guildID, command)
-		logger.Info(context.Background(), command.Name)
-		if err != nil {
-			logger.Error(context.Background(), err.Error())
+		for _, guildID := range guildIDs {
+			_, err := dh.ss.ApplicationCommandCreate(id, guildID, command)
+			logger.Info(context.Background(), command.Name)
+			if err != nil {
+				logger.Error(context.Background(), err.Error())
+			}
 		}
 	}
 }
