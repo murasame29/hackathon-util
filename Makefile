@@ -18,5 +18,11 @@ sync_role:
 	go run cmd/create_role/main.go -e .env
 	go run cmd/bind_role/main.go -e .env
 
-run:
-	go run cmd/app/main.go -e .env
+build:
+	docker compose build
+
+run: build
+	docker compose up
+
+rund: build
+	docker compose up
