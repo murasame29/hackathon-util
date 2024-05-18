@@ -32,6 +32,16 @@ DISCORD_BOT_TOKEN=                                                     # Discord
 DISCORD_GUILD_ID=                                                      # 対象のDiscordサーバー
 ```
 
+#### DISCORD_BOT_TOKENの設定方法
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) にアクセス
+2. New Application からアプリケーションを作成
+3. サイドバーのBotタブ から トークン を作成し、コピーして DISCORD_BOT_TOKEN に設定
+
+#### DISCORD_GUILD_ID の設定方法（スクリプトで実行したい場合のみ）
+
+1. サーバー名で右クリックしてメニューの一番下にある「サーバーIDをコピー」をクリック
+
 ### credential ファイルの生成
 
 1. Google Cloudから [スプレッドシートAPI](https://console.cloud.google.com/apis/library/sheets.googleapis.com?hl=ja)を有効にする 
