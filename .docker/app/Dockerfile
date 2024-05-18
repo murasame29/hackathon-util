@@ -7,7 +7,7 @@ COPY . .
 
 RUN go build -o main cmd/app/main.go
 
-FROM ubuntu:latest
+FROM gcr.io/distroless/static-debian10
 WORKDIR /app
 COPY --from=go /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=go /build/main .
