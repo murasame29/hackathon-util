@@ -1,4 +1,4 @@
-package handler
+package controller
 
 import "github.com/murasame29/hackathon-util/internal/application"
 

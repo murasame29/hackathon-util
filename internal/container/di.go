@@ -3,13 +3,13 @@ package container
 import (
 	"net/http"
 
+	"github.com/murasame29/hackathon-util/internal/adapter/controller"
+	"github.com/murasame29/hackathon-util/internal/adapter/gateways/discordgo"
+	"github.com/murasame29/hackathon-util/internal/adapter/gateways/gs"
 	"github.com/murasame29/hackathon-util/internal/application"
 	"github.com/murasame29/hackathon-util/internal/driver"
 	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
-	"github.com/murasame29/hackathon-util/internal/gateways/discordgo"
-	"github.com/murasame29/hackathon-util/internal/gateways/gs"
-	"github.com/murasame29/hackathon-util/internal/handler"
-	"github.com/murasame29/hackathon-util/internal/router"
+	"github.com/murasame29/hackathon-util/internal/framewrok/http/router"
 	"go.uber.org/dig"
 )
 
@@ -20,7 +20,7 @@ type provideArg struct {
 	opts        []dig.ProvideOption
 }
 
-func NewContainer() http.Handler {
+func NewContainer() error {
 	Container = dig.New()
 
 	args := []provideArg{
@@ -30,24 +30,17 @@ func NewContainer() http.Handler {
 		{gs.New, []dig.ProvideOption{}},
 		{router.NewRoute, []dig.ProvideOption{}},
 		{discord.NewHandler, []dig.ProvideOption{}},
-		{handler.NewHandler, []dig.ProvideOption{}},
+		{controller.NewHandler, []dig.ProvideOption{}},
 		{application.NewApplicationService, []dig.ProvideOption{}},
 	}
 
 	for _, arg := range args {
 		if err := Container.Provide(arg.constructor, arg.opts...); err != nil {
-			panic(err)
+			return err
 		}
 	}
 
-	var handler http.Handler
-	if err := Container.Invoke(func(h http.Handler) {
-		handler = h
-	}); err != nil {
-		panic(err)
-	}
-
-	return handler
+	return nil
 }
 
 func NewSheetLessContainer() http.Handler {
@@ -58,7 +51,7 @@ func NewSheetLessContainer() http.Handler {
 		{discordgo.New, []dig.ProvideOption{}},
 		{router.NewRoute, []dig.ProvideOption{}},
 		{discord.NewHandler, []dig.ProvideOption{}},
-		{handler.NewHandler, []dig.ProvideOption{}},
+		{controller.NewHandler, []dig.ProvideOption{}},
 		{application.NewSheetLessApplicationService, []dig.ProvideOption{}},
 	}
 
