@@ -24,6 +24,7 @@ func NewContainer() http.Handler {
 	Container = dig.New()
 
 	args := []provideArg{
+		{driver.NewDiscordSession, []dig.ProvideOption{}},
 		{driver.NewGCPCredential, []dig.ProvideOption{}},
 		{discordgo.New, []dig.ProvideOption{}},
 		{gs.New, []dig.ProvideOption{}},
