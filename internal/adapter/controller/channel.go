@@ -1,4 +1,4 @@
-package handler
+package controller
 
 import (
 	"encoding/json"
@@ -8,19 +8,19 @@ import (
 	"github.com/murasame29/hackathon-util/internal/application"
 )
 
-type RoleRequest struct {
+type ChannelRequest struct {
 	Action        ActionType `json:"action"`
 	GuildID       string     `json:"guild_id"`
 	SpreadSheetID string     `json:"spread_sheet_id"`
 	SpreadRange   string     `json:"spread_range"`
 }
 
-type RoleResponse struct {
+type ChannelResponse struct {
 	Message string `json:"message"`
 }
 
-func (h *Handler) Role(w http.ResponseWriter, r *http.Request) {
-	var req RoleRequest
+func (h *Handler) Channel(w http.ResponseWriter, r *http.Request) {
+	var req ChannelRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -33,19 +33,13 @@ func (h *Handler) Role(w http.ResponseWriter, r *http.Request) {
 	)
 	switch req.Action {
 	case ActionTypeCreate:
-		message, err = h.app.CreateRole(r.Context(), application.CreateRoleParam{
+		message, err = h.app.CraeteChannel(r.Context(), application.CreateChannelParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,
 		})
 	case ActionTypeDelete:
-		message, err = h.app.DeleteRole(r.Context(), application.DeleteRoleParam{
-			GuildID:       req.GuildID,
-			SpreadSheetID: req.SpreadSheetID,
-			Range:         req.SpreadRange,
-		})
-	case ActionTypeBind:
-		message, err = h.app.BindRole(r.Context(), application.BindRoleParam{
+		message, err = h.app.DeleteChannel(r.Context(), application.DeleteChannelParam{
 			GuildID:       req.GuildID,
 			SpreadSheetID: req.SpreadSheetID,
 			Range:         req.SpreadRange,

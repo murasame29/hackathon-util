@@ -1,16 +1,15 @@
-FROM golang:1.22.2 AS go
+FROM golang:1.22.2 AS builder
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download 
 
 COPY . .
 
-RUN go build -o main cmd/app/main.go
+RUN go build -o /bin/app cmd/app/main.go
 
-FROM ubuntu:latest
+FROM gcr.io/distroless/base-debian12:nonroot
 WORKDIR /app
-COPY --from=go /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=go /app/main .
-USER 1001
+COPY --from=builder /bin/app /app/app
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-CMD ["/app/main"]
+ENTRYPOINT ["/app/app"]

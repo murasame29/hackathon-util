@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: hackathon-util
-          image: harbor.seafood-dev.com/murasame29/hackathon-util:e502c56e3caccc1ea209cfd307cdf17d952ee4cd
+          image: harbor.seafood-dev.com/murasame29/hackathon-util:d80007482b162b89d576a4c2efe323f054cac843
           resources:
             requests:
               memory: "32Mi"
@@ -35,6 +35,11 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: google_application_credentials
+                  name: hackathon-util-config
+            - name: DISCORD_GUILD_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: discord_guild_ids
                   name: hackathon-util-config
           ports:
             - containerPort: 8080

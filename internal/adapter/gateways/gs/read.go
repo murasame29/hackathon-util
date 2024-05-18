@@ -12,13 +12,13 @@ type GoogleSpreadSeet struct {
 	ss *sheets.Service
 }
 
-func New(credential option.ClientOption) (*GoogleSpreadSeet, error) {
+func New(credential option.ClientOption) *GoogleSpreadSeet {
 	ss, err := sheets.NewService(context.Background(), credential)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return &GoogleSpreadSeet{ss}, nil
+	return &GoogleSpreadSeet{ss}
 }
 
 func (gs *GoogleSpreadSeet) Read(spreadsheetID string, range_ string) ([][]string, error) {

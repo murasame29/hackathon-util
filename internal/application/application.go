@@ -1,8 +1,8 @@
 package application
 
 import (
-	"github.com/murasame29/hackathon-util/internal/gateways/discordgo"
-	"github.com/murasame29/hackathon-util/internal/gateways/gs"
+	"github.com/murasame29/hackathon-util/internal/adapter/gateways/discordgo"
+	"github.com/murasame29/hackathon-util/internal/adapter/gateways/gs"
 )
 
 type ApplicationService struct {

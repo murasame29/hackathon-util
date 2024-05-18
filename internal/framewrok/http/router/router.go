@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
-	"github.com/murasame29/hackathon-util/internal/handler"
-	"github.com/murasame29/hackathon-util/internal/router/middleware"
+	"github.com/murasame29/hackathon-util/internal/adapter/controller"
+	"github.com/murasame29/hackathon-util/internal/framewrok/http/middleware"
 )
 
 type Router struct {
 	mux *http.ServeMux
 
-	handler *handler.Handler
+	handler *controller.Handler
 }
 
-func NewRoute(handler *handler.Handler) http.Handler {
+func NewRoute(handler *controller.Handler) http.Handler {
 	router := &Router{
 		mux:     http.NewServeMux(),
 		handler: handler,
