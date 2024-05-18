@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
 	"github.com/murasame29/hackathon-util/pkg/logger"
 	"golang.org/x/sync/errgroup"
 )
@@ -21,16 +22,19 @@ type Server struct {
 	srv *http.Server
 	// shutdown timeout
 	shutdownTimeout time.Duration
+
+	ss *discord.DiscordHandler
 }
 
 // New はHTTPサーバを生成する
-func New(addr string, handler http.Handler, opts ...Option) *Server {
+func New(addr string, handler http.Handler, ss *discord.DiscordHandler, opts ...Option) *Server {
 	s := &Server{
 		srv: &http.Server{
 			Addr:    addr,
 			Handler: handler,
 		},
 		shutdownTimeout: DefaultShutdownTimeout,
+		ss:              ss,
 	}
 
 	for _, opt := range opts {
@@ -65,6 +69,10 @@ func (s *Server) RunWithGraceful(ctx context.Context) {
 
 	group.Go(func() error {
 		return s.Run(ctx)
+	})
+
+	group.Go(func() error {
+		return s.OpenBot(ctx)
 	})
 
 	group.Go(func() error {
