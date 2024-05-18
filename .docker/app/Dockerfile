@@ -13,4 +13,4 @@ COPY --from=go /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=go /build/main .
 USER 1001
 
-CMD ["/app/main"]
+CMD ["./main"]
