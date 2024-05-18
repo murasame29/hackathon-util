@@ -1,0 +1,10 @@
+services:
+  bots-sheetless:
+    build:
+      context: .docker/app
+      dockerfile: local.sheet-api.Dockerfile
+    restart: always
+    volumes:
+      - ./:/app
+    ports:
+      - 8080:8080

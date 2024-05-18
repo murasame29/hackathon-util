@@ -16,3 +16,9 @@ func NewApplicationService(gs *gs.GoogleSpreadSeet, ds *discordgo.DiscordSession
 		ds: ds,
 	}
 }
+
+func NewSheetLessApplicationService(ds *discordgo.DiscordSession) *ApplicationService {
+	return &ApplicationService{
+		ds: ds,
+	}
+}

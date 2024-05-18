@@ -46,3 +46,29 @@ func NewContainer() http.Handler {
 
 	return handler
 }
+
+func NewSheetLessContainer() http.Handler {
+	Container = dig.New()
+
+	args := []provideArg{
+		{discordgo.New, []dig.ProvideOption{}},
+		{router.NewRoute, []dig.ProvideOption{}},
+		{handler.NewHandler, []dig.ProvideOption{}},
+		{application.NewSheetLessApplicationService, []dig.ProvideOption{}},
+	}
+
+	for _, arg := range args {
+		if err := Container.Provide(arg.constructor, arg.opts...); err != nil {
+			panic(err)
+		}
+	}
+
+	var handler http.Handler
+	if err := Container.Invoke(func(h http.Handler) {
+		handler = h
+	}); err != nil {
+		panic(err)
+	}
+
+	return handler
+}
