@@ -27,7 +27,7 @@ type Server struct {
 func New(addr string, handler http.Handler, opts ...Option) *Server {
 	s := &Server{
 		srv: &http.Server{
-			Addr:    addr,
+			Addr:    ":8080",
 			Handler: handler,
 		},
 		shutdownTimeout: DefaultShutdownTimeout,
