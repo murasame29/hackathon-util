@@ -28,7 +28,7 @@ rund: build
 	docker compose up -d
 
 build-sheetless: 
-	docker compose -f sheetless.compose.yaml build --no-cache
+	docker compose -f sheetless.compose.yaml build
 
 run-sheetless: build-sheetless
 	docker compose -f sheetless.compose.yaml up --build

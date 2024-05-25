@@ -56,6 +56,9 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 	// カテゴリIDを設定（ここに特定のカテゴリIDを設定してください）
 	// TODO: Dynamic category creation
 	categoryID := "1243912466782486569"
+	// コマンドを実行したチャンネルID
+	commandChannelID := i.ChannelID
+
 	// Get the list of users in the target voice channel
 	users, err := getUsersInChannel(s, targetVC.ID)
 	if err != nil {
@@ -118,13 +121,14 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 	go func() {
 		ticker := time.NewTicker(30 * time.Second)
 		defer ticker.Stop()
+
 		for remainingTime := timeToLive * 60; remainingTime > 0; remainingTime -= 30 {
-			<-ticker.C
 			minutes := remainingTime / 60
 			seconds := remainingTime % 60
 			message := fmt.Sprintf("Remaining time: %d minutes %d seconds", minutes, seconds)
 			log.Println(message)
-			s.ChannelMessageSend(targetVC.ID, message)
+			s.ChannelMessageSend(commandChannelID, message)
+			<-ticker.C
 		}
 	}()
 
