@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
-	"os"
-	"strings"
-
+	// "github.com/joho/godotenv"
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/container"
 	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
 	"github.com/murasame29/hackathon-util/internal/server"
 	"github.com/murasame29/hackathon-util/pkg/logger"
+	"log"
+	"os"
+	"strings"
 )
 
 type envFlag []string
@@ -30,7 +30,7 @@ func init() {
 	var envFile envFlag
 	flag.Var(&envFile, "e", "path to .env file \n eg. -e .env -e another.env . ")
 	flag.Parse()
-
+	log.Println(envFile)
 	if err := config.LoadEnv(envFile...); err != nil {
 		log.Fatal("Error loading .env file")
 	}

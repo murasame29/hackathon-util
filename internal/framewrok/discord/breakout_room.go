@@ -54,7 +54,8 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 	targetVC := optionMap["target-vc"].ChannelValue(s)
 	numberPerRoom := int(optionMap["number-per-room"].IntValue())
 	timeToLive := int(optionMap["time-to-live"].IntValue())
-
+	// カテゴリIDを設定（ここに特定のカテゴリIDを設定してください）
+	categoryID := "986889430226845761"
 	// Get the list of users in the target voice channel
 	users, err := getUsersInChannel(s, targetVC.ID)
 	if err != nil {
@@ -76,17 +77,22 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 
 	// Create breakout rooms
 	for j := 0; j < numRooms; j++ {
-		room, err := s.GuildChannelCreate(targetVC.GuildID, fmt.Sprintf("breakout_%d", j+1), discordgo.ChannelTypeGuildVoice)
+		room, err := s.GuildChannelCreateComplex(targetVC.GuildID, discordgo.GuildChannelCreateData{
+			Name:     fmt.Sprintf("breakout_%d", j+1),
+			Type:     discordgo.ChannelTypeGuildVoice,
+			ParentID: categoryID,
+		})
 		if err != nil {
 			log.Printf("Error creating breakout room: %v", err)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "Failed to create breakout rooms.",
+					Content: fmt.Sprintf("Failed to create breakout room %d: %v", j+1, err),
 				},
 			})
 			return
 		}
+		log.Printf("Created breakout room: %s", room.Name)
 		breakoutRooms[j] = room
 	}
 
@@ -108,6 +114,20 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 		},
 	})
 
+	// Start a goroutine to send remaining time notifications every 30 seconds
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for remainingTime := timeToLive * 60; remainingTime > 0; remainingTime -= 30 {
+			<-ticker.C
+			minutes := remainingTime / 60
+			seconds := remainingTime % 60
+			message := fmt.Sprintf("Remaining time: %d minutes %d seconds", minutes, seconds)
+			log.Println(message)
+			s.ChannelMessageSend(targetVC.ID, message)
+		}
+	}()
+
 	// Wait for the time-to-live duration
 	time.Sleep(time.Duration(timeToLive) * time.Minute)
 
@@ -120,11 +140,12 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 		for _, user := range users {
 			s.GuildMemberMove(targetVC.GuildID, user, &targetVC.ID)
 		}
-		// channel, err := s.ChannelDelete(room.ID)
+		_, err = s.ChannelDelete(room.ID)
 		if err != nil {
 			log.Printf("Error deleting breakout room: %v", err)
+		} else {
+			log.Printf("Deleted breakout room: %s", room.Name)
 		}
-		// log.Printf("Deleted breakout room: %v", channel.Name)
 	}
 }
 
