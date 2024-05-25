@@ -42,6 +42,12 @@ func (r *Router) common() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(config.Config.Application.Version))
 	})
+
+	// discord bot INTERACTIONS ENDPOINT URL
+	r.mux.HandleFunc("POST /interactions", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(config.Config.Application.Version))
+	})
 }
 
 func (r *Router) DiscordOps() {
