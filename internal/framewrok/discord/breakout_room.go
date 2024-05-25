@@ -8,7 +8,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/murasame29/hackathon-util/cmd/config"
-	// "github.com/murasame29/hackathon-util/internal/application"
 )
 
 var integerOptionMinValue = 1.0
@@ -55,7 +54,8 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 	numberPerRoom := int(optionMap["number-per-room"].IntValue())
 	timeToLive := int(optionMap["time-to-live"].IntValue())
 	// カテゴリIDを設定（ここに特定のカテゴリIDを設定してください）
-	categoryID := "986889430226845761"
+	// TODO: Dynamic category creation
+	categoryID := "1243912466782486569"
 	// Get the list of users in the target voice channel
 	users, err := getUsersInChannel(s, targetVC.ID)
 	if err != nil {
