@@ -6,7 +6,7 @@ func (dh *DiscordHandler) Health(s *discordgo.Session, i *discordgo.InteractionC
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "health ok!",
+			Content: "health ok!asdasdsadsadas",
 		},
 	})
 }

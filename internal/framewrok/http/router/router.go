@@ -25,7 +25,6 @@ func NewRoute(handler *controller.Handler) http.Handler {
 
 	{
 		router.DiscordOps()
-		router.DiscordBreakoutRoom()
 	}
 
 	return router.mux
@@ -67,20 +66,6 @@ func (r *Router) DiscordOps() {
 	// sync
 	r.mux.Handle("POST /discord/sync", middleware.BuildChain(
 		http.HandlerFunc(r.handler.Sync),
-		middleware.LoggerInContext,
-		middleware.AccessLog,
-	))
-}
-
-func (r *Router) DiscordBreakoutRoom() {
-	// health check
-	r.mux.HandleFunc("GET /test", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf("health ok! environment: %s", config.Config.Application.Env)))
-	})
-	// discord role control
-	r.mux.Handle("POST /discord/role", middleware.BuildChain(
-		http.HandlerFunc(r.handler.Role),
 		middleware.LoggerInContext,
 		middleware.AccessLog,
 	))

@@ -3,6 +3,9 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
+  # for local development
+  # bin = "tmp/main"
+  # cmd = "go build -o ./tmp/main cmd/app-sheetless/main.go"
   bin = "./.bin/main"
   cmd = "go build -o ./.bin/main cmd/app-sheetless/main.go"
   delay = 1000
