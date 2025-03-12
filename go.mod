@@ -8,6 +8,7 @@ require (
 	github.com/cockroachdb/errors v1.11.1
 	github.com/joho/godotenv v1.5.1
 	github.com/sourcegraph/conc v0.3.0
+	github.com/spf13/cobra v1.9.1
 	go.uber.org/dig v1.17.1
 	go.uber.org/zap v1.27.0
 	golang.org/x/sync v0.7.0
@@ -33,10 +34,12 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0 // indirect
 	go.opentelemetry.io/otel v1.26.0 // indirect

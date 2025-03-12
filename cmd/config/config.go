@@ -12,7 +12,7 @@ func LoadEnv(filePath ...string) error {
 		}
 	}
 
-	config := config{}
+	config := EnvironmentsVariables{}
 
 	if err := env.Parse(&config.Application); err != nil {
 		return err
