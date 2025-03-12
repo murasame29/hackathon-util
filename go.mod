@@ -7,7 +7,6 @@ require (
 	github.com/caarlos0/env/v11 v11.0.0
 	github.com/cockroachdb/errors v1.11.1
 	github.com/joho/godotenv v1.5.1
-	github.com/sourcegraph/conc v0.3.0
 	github.com/spf13/cobra v1.9.1
 	go.uber.org/dig v1.17.1
 	go.uber.org/zap v1.27.0
