@@ -12,7 +12,8 @@ import (
 )
 
 type CreateChannelsOptions struct {
-	URL      string
+	SheetID  string
+	Range    string
 	FilePath string
 
 	config *config.EnvironmentsVariables
@@ -39,13 +40,13 @@ func (o *CreateChannelsOptions) Validate() error {
 		return application.ErrNoSetDiscordGuildID
 	}
 
-	if o.URL == "" && o.FilePath == "" {
+	if (o.SheetID == "" || o.Range == "") && o.FilePath == "" {
 		return application.ErrNoSetDataSource
 	}
 
-	o.dataSourceMode = application.DataSourceFile
+	o.dataSourceMode = application.DataSourceModeFile
 	if o.FilePath == "" {
-		o.dataSourceMode = application.DataSourceURL
+		o.dataSourceMode = application.DataSourceModeGoogleSheet
 	}
 
 	return nil
@@ -58,14 +59,20 @@ func (o *CreateChannelsOptions) Run() error {
 	}
 
 	cc := newCreateChannel(discord)
+	var result *application.ReadDataSourceResult
 
 	switch o.dataSourceMode {
-	case application.DataSourceFile:
-		return cc.File()
-	case application.DataSourceURL:
-		return cc.URL()
+	case application.DataSourceModeFile:
+		result, err = application.NewDataSourceCSV(o.FilePath).Read()
+	case application.DataSourceModeGoogleSheet:
+		result, err = application.NewDataSourceGoogleSheets(o.SheetID, o.Range).Read()
 	}
-	return nil
+
+	if err != nil {
+		return err
+	}
+
+	return cc.Execute(result.TeamNames)
 }
 
 type createChannel struct {
@@ -78,20 +85,9 @@ func newCreateChannel(discord *discord.Discord) *createChannel {
 	}
 }
 
-func (c *createChannel) File() error {
-	ctx := context.Background()
-
-	return c.Execute(ctx, nil)
-}
-
-func (c *createChannel) URL() error {
-	ctx := context.Background()
-
-	return c.Execute(ctx, nil)
-}
-
-func (c *createChannel) Execute(ctx context.Context, categories []string) error {
+func (c *createChannel) Execute(categories []string) error {
 	var eg errgroup.Group
+	ctx := context.Background()
 
 	for _, category := range categories {
 		eg.Go(func() error {

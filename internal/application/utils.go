@@ -1,6 +1,8 @@
 package application
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	ErrNoSetDiscordBotToken = errors.New("no set discord bot token")
@@ -11,6 +13,6 @@ var (
 type DataSourceMode string
 
 const (
-	DataSourceURL  DataSourceMode = "url"
-	DataSourceFile DataSourceMode = "file"
+	DataSourceModeGoogleSheet DataSourceMode = "google_sheets"
+	DataSourceModeFile        DataSourceMode = "file"
 )

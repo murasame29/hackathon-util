@@ -9,13 +9,18 @@ func NewCreateChannelsCommand() *cobra.Command {
 	o := create.NewCreateChannelsOptions()
 
 	cmd := &cobra.Command{
-		Use:   "create channels (-f FILE | -u URL)",
+		Use:   `create channels (-f FILE | -s "sheetID" -r "range ("sheet!a:b")`,
 		Short: "create to channels",
 		Long:  "create to channels (会議,雑談,VC) in discord server",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := o.Complete(); err != nil {
 				return err
 			}
+
+			if err := o.Validate(); err != nil {
+				return err
+			}
+
 			if err := o.Run(); err != nil {
 				return err
 			}
@@ -23,7 +28,8 @@ func NewCreateChannelsCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&o.URL, "u", o.URL, "set url")
+	cmd.Flags().StringVar(&o.SheetID, "s", o.SheetID, "set sheetID")
+	cmd.Flags().StringVar(&o.Range, "r", o.Range, "set range")
 	cmd.Flags().StringVar(&o.FilePath, "f", o.FilePath, "set file")
 
 	return cmd
