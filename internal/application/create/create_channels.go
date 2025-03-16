@@ -22,7 +22,9 @@ type CreateChannelsOptions struct {
 }
 
 func NewCreateChannelsOptions() *CreateChannelsOptions {
-	return &CreateChannelsOptions{}
+	return &CreateChannelsOptions{
+		config: config.NewEnvironment(),
+	}
 }
 
 func (o *CreateChannelsOptions) Complete() error {

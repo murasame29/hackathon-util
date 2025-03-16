@@ -3,6 +3,7 @@ package cli
 import (
 	"log"
 
+	"github.com/murasame29/hackathon-util/cmd/cli/create"
 	"github.com/spf13/cobra"
 )
 
@@ -20,5 +21,5 @@ func Execute() {
 
 func init() {
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	RootCmd.AddCommand()
+	RootCmd.AddCommand(create.NewCreateCommands())
 }

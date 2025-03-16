@@ -5,6 +5,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+func NewEnvironment() *EnvironmentsVariables {
+	return &EnvironmentsVariables{}
+}
+
 func LoadEnv(filePath ...string) error {
 	if len(filePath) > 0 {
 		if err := godotenv.Load(filePath...); err != nil {

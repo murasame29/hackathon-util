@@ -9,7 +9,7 @@ func NewCreateChannelsCommand() *cobra.Command {
 	o := create.NewCreateChannelsOptions()
 
 	cmd := &cobra.Command{
-		Use:   `create channels (-f FILE | -s "sheetID" -r "range ("sheet!a:b")`,
+		Use:   `channels (-f FILE | -s "sheetID" -r "range ("sheet!a:b")`,
 		Short: "create to channels",
 		Long:  "create to channels (会議,雑談,VC) in discord server",
 		RunE: func(cmd *cobra.Command, args []string) error {
