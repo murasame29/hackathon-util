@@ -1,8 +1,6 @@
 package container
 
 import (
-	"net/http"
-
 	"github.com/murasame29/hackathon-util/internal/adapter/gateways/discordgo"
 	"github.com/murasame29/hackathon-util/internal/driver"
 	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
@@ -16,7 +14,7 @@ type provideArg struct {
 	opts        []dig.ProvideOption
 }
 
-func NewSheetLessContainer() http.Handler {
+func NewContainer() error {
 	Container = dig.New()
 
 	args := []provideArg{
@@ -27,20 +25,19 @@ func NewSheetLessContainer() http.Handler {
 
 	for _, arg := range args {
 		if err := Container.Provide(arg.constructor, arg.opts...); err != nil {
-			panic(err)
+			return err
 		}
 	}
 
-	var handler http.Handler
-	if err := Container.Invoke(func(h http.Handler) {
-		handler = h
-	}); err != nil {
-		panic(err)
-	}
-
-	return handler
+	return nil
 }
 
-func Provide(fn any) error {
-	return Container.Invoke(fn)
+func Provide[T any]() (T, error) {
+	var t T
+	if err := Container.Invoke(func(v T) {
+		t = v
+	}); err != nil {
+		return t, err
+	}
+	return t, nil
 }

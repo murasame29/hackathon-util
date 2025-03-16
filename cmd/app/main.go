@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"flag"
+
 	// "github.com/joho/godotenv"
-	"github.com/murasame29/hackathon-util/cmd/config"
-	"github.com/murasame29/hackathon-util/internal/container"
-	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
-	"github.com/murasame29/hackathon-util/internal/server"
-	"github.com/murasame29/hackathon-util/pkg/logger"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/murasame29/hackathon-util/cmd/config"
+	"github.com/murasame29/hackathon-util/internal/container"
+	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
+	"github.com/murasame29/hackathon-util/pkg/logger"
 )
 
 type envFlag []string
@@ -45,17 +46,18 @@ func main() {
 func run() error {
 	ctx := logger.NewLoggerWithContext(context.Background())
 
-	handler := container.NewSheetLessContainer()
-	var discordHandler *discord.DiscordHandler
-	if err := container.Provide(func(dh *discord.DiscordHandler) {
-		discordHandler = dh
-	}); err != nil {
-		logger.Error(ctx, err.Error())
+	if err := container.NewContainer(); err != nil {
 		return err
 	}
-	server.
-		New(config.Config.Application.Addr, handler, discordHandler).
-		RunWithGraceful(ctx)
+
+	discordHandler, err := container.Provide[*discord.DiscordHandler]()
+	if err != nil {
+		return err
+	}
+
+	if err := discordHandler.Open(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }
