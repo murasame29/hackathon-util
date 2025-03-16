@@ -11,9 +11,10 @@ import (
 )
 
 type CreateRolesOptions struct {
-	SheetID  string
-	Range    string
-	FilePath string
+	SheetID     string
+	Range       string
+	FilePath    string
+	EnvFilePath string
 
 	config *config.EnvironmentsVariables
 
@@ -29,6 +30,14 @@ func NewCreateRolesOptions() *CreateRolesOptions {
 func (o *CreateRolesOptions) Complete() error {
 	o.config.Discord.BotToken = os.Getenv("DISCORD_BOT_TOKEN")
 	o.config.Discord.GuildID = os.Getenv("DISCORD_GUILD_ID")
+
+	if o.EnvFilePath != "" {
+		if err := config.LoadEnv(o.EnvFilePath); err != nil {
+			return err
+		}
+
+		o.config = config.Config
+	}
 	return nil
 }
 

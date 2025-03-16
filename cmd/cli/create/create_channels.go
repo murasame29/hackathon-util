@@ -28,9 +28,10 @@ func NewCreateChannelsCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&o.SheetID, "s", o.SheetID, "set sheetID")
-	cmd.Flags().StringVar(&o.Range, "r", o.Range, "set range")
-	cmd.Flags().StringVar(&o.FilePath, "f", o.FilePath, "set file")
+	cmd.Flags().StringVarP(&o.SheetID, "sheet-id", "s", o.SheetID, "set sheetID")
+	cmd.Flags().StringVarP(&o.Range, "range", "r", o.Range, "set range")
+	cmd.Flags().StringVarP(&o.FilePath, "file", "f", o.FilePath, "set file")
+	cmd.Flags().StringVarP(&o.EnvFilePath, "env-file", "e", o.FilePath, "set env file (e.g. -e .env)")
 
 	return cmd
 }
