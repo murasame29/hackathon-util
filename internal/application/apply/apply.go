@@ -1,19 +1,19 @@
-package bind
+package apply
 
 import (
-	"context"
 	"os"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/application"
+	"github.com/murasame29/hackathon-util/internal/application/bind"
+	"github.com/murasame29/hackathon-util/internal/application/create"
 	"github.com/murasame29/hackathon-util/internal/datasource"
 	"github.com/murasame29/hackathon-util/internal/datasource/csv"
 	"github.com/murasame29/hackathon-util/internal/datasource/sheet"
 	"github.com/murasame29/hackathon-util/internal/discord"
-	"golang.org/x/sync/errgroup"
 )
 
-type BindRoleOptions struct {
+type ApplyOptions struct {
 	SheetID     string
 	Range       string
 	FilePath    string
@@ -24,13 +24,13 @@ type BindRoleOptions struct {
 	dataSourceMode application.DataSourceMode
 }
 
-func NewBindRoleOptions() *BindRoleOptions {
-	return &BindRoleOptions{
+func NewApplyOptions() *ApplyOptions {
+	return &ApplyOptions{
 		config: config.NewEnvironment(),
 	}
 }
 
-func (o *BindRoleOptions) Complete() error {
+func (o *ApplyOptions) Complete() error {
 	o.config.Discord.BotToken = os.Getenv("DISCORD_BOT_TOKEN")
 	o.config.Discord.GuildID = os.Getenv("DISCORD_GUILD_ID")
 
@@ -44,7 +44,7 @@ func (o *BindRoleOptions) Complete() error {
 	return nil
 }
 
-func (o *BindRoleOptions) Validate() error {
+func (o *ApplyOptions) Validate() error {
 	if o.config.Discord.BotToken == "" {
 		return application.ErrNoSetDiscordBotToken
 	}
@@ -61,17 +61,15 @@ func (o *BindRoleOptions) Validate() error {
 	if o.FilePath == "" {
 		o.dataSourceMode = application.DataSourceModeGoogleSheet
 	}
-
 	return nil
 }
 
-func (o *BindRoleOptions) Run() error {
+func (o *ApplyOptions) Run() error {
 	discord, err := discord.NewDiscord(o.config.Discord.BotToken)
 	if err != nil {
 		return err
 	}
 
-	cc := NewBindRole(discord)
 	var result *datasource.ReadDataSourceResult
 
 	switch o.dataSourceMode {
@@ -85,47 +83,13 @@ func (o *BindRoleOptions) Run() error {
 		return err
 	}
 
-	return cc.Execute(result.Teams)
-}
-
-type BindRole struct {
-	discord *discord.Discord
-}
-
-func NewBindRole(discord *discord.Discord) *BindRole {
-	return &BindRole{
-		discord: discord,
-	}
-}
-
-func (c *BindRole) Execute(teams map[string][]string) error {
-	var eg errgroup.Group
-	ctx := context.Background()
-
-	for teamName, members := range teams {
-		eg.Go(func() error {
-			role, err := c.discord.Role.Get(ctx, config.Config.Discord.GuildID, teamName)
-			if err != nil {
-				return err
-			}
-
-			for _, member := range members {
-				user, err := c.discord.Member.Get(ctx, config.Config.Discord.GuildID, member)
-				if err != nil {
-					return err
-				}
-
-				if err := c.discord.Member.AddRole(ctx, config.Config.Discord.GuildID, user.User.ID, role.ID); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-	}
-
-	if err := eg.Wait(); err != nil {
+	if err := create.NewCreateChannel(discord).Execute(result.TeamNames); err != nil {
 		return err
 	}
 
-	return nil
+	if err := create.NewCreateRole(discord).Execute(result.Teams); err != nil {
+		return err
+	}
+
+	return bind.NewBindRole(discord).Execute(result.Teams)
 }

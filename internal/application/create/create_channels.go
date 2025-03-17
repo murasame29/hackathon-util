@@ -72,7 +72,7 @@ func (o *CreateChannelsOptions) Run() error {
 		return err
 	}
 
-	cc := newCreateChannel(discord)
+	cc := NewCreateChannel(discord)
 	var result *datasource.ReadDataSourceResult
 
 	switch o.dataSourceMode {
@@ -89,17 +89,17 @@ func (o *CreateChannelsOptions) Run() error {
 	return cc.Execute(result.TeamNames)
 }
 
-type createChannel struct {
+type CreateChannel struct {
 	discord *discord.Discord
 }
 
-func newCreateChannel(discord *discord.Discord) *createChannel {
-	return &createChannel{
+func NewCreateChannel(discord *discord.Discord) *CreateChannel {
+	return &CreateChannel{
 		discord: discord,
 	}
 }
 
-func (c *createChannel) Execute(categories []string) error {
+func (c *CreateChannel) Execute(categories []string) error {
 	var eg errgroup.Group
 	ctx := context.Background()
 

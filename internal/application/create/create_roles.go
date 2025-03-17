@@ -70,7 +70,7 @@ func (o *CreateRolesOptions) Run() error {
 		return err
 	}
 
-	cr := newCreateRole(discord)
+	cr := NewCreateRole(discord)
 	var result *datasource.ReadDataSourceResult
 
 	switch o.dataSourceMode {
@@ -87,17 +87,17 @@ func (o *CreateRolesOptions) Run() error {
 	return cr.Execute(result.Teams)
 }
 
-type createRole struct {
+type CreateRole struct {
 	discord *discord.Discord
 }
 
-func newCreateRole(discord *discord.Discord) *createRole {
-	return &createRole{
+func NewCreateRole(discord *discord.Discord) *CreateRole {
+	return &CreateRole{
 		discord: discord,
 	}
 }
 
-func (c *createRole) Execute(teams map[string][]string) error {
+func (c *CreateRole) Execute(teams map[string][]string) error {
 	var eg errgroup.Group
 	ctx := context.Background()
 
