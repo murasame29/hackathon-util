@@ -43,7 +43,7 @@ func (d *DataSource) Read() (*datasource.ReadDataSourceResult, error) {
 		)
 		for i, item := range records {
 			switch indexes[i] {
-			case "チーム名":
+			case "team_name":
 				if item == "" {
 					continue
 				}
