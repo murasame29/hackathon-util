@@ -1,7 +1,6 @@
 package container
 
 import (
-	"github.com/murasame29/hackathon-util/internal/adapter/gateways/discordgo"
 	"github.com/murasame29/hackathon-util/internal/driver"
 	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
 	"go.uber.org/dig"
@@ -19,7 +18,6 @@ func NewContainer() error {
 
 	args := []provideArg{
 		{driver.NewDiscordSession, []dig.ProvideOption{}},
-		{discordgo.New, []dig.ProvideOption{}},
 		{discord.NewHandler, []dig.ProvideOption{}},
 	}
 

@@ -7,6 +7,9 @@ import (
 
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/application"
+	"github.com/murasame29/hackathon-util/internal/datasource"
+	"github.com/murasame29/hackathon-util/internal/datasource/csv"
+	"github.com/murasame29/hackathon-util/internal/datasource/sheet"
 	"github.com/murasame29/hackathon-util/internal/discord"
 	"golang.org/x/sync/errgroup"
 )
@@ -70,13 +73,13 @@ func (o *CreateChannelsOptions) Run() error {
 	}
 
 	cc := newCreateChannel(discord)
-	var result *application.ReadDataSourceResult
+	var result *datasource.ReadDataSourceResult
 
 	switch o.dataSourceMode {
 	case application.DataSourceModeFile:
-		result, err = application.NewDataSourceCSV(o.FilePath).Read()
+		result, err = csv.NewDataSource(o.FilePath).Read()
 	case application.DataSourceModeGoogleSheet:
-		result, err = application.NewDataSourceGoogleSheets(o.SheetID, o.Range).Read()
+		result, err = sheet.NewDataSource(o.SheetID, o.Range).Read()
 	}
 
 	if err != nil {
