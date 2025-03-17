@@ -25,7 +25,24 @@ var (
 	ChannelTypeVoice    = discordgo.ChannelTypeGuildVoice
 )
 
-func (c *Channel) Get(ctx context.Context, category discordgo.ChannelType, guildID, name string) (*discordgo.Channel, error) {
+type GetChannelOption struct {
+	parentID *string
+}
+
+type GetChannelOptions func(*GetChannelOption)
+
+func WithParentID(parentID string) GetChannelOptions {
+	return func(o *GetChannelOption) {
+		o.parentID = &parentID
+	}
+}
+
+func (c *Channel) Get(ctx context.Context, category discordgo.ChannelType, guildID, name string, opts ...GetChannelOptions) (*discordgo.Channel, error) {
+	option := new(GetChannelOption)
+	for _, opt := range opts {
+		opt(option)
+	}
+
 	if channel, ok := c.cache.Get(fmt.Sprintf("%s_%d_%s", guildID, category, name)); ok {
 		return channel.(*discordgo.Channel), nil
 	}
@@ -38,11 +55,25 @@ func (c *Channel) Get(ctx context.Context, category discordgo.ChannelType, guild
 	for _, channel := range channels {
 		c.cache.Set(fmt.Sprintf("%s_%d_%s", guildID, channel.Type, channel.Name), channel)
 		if channel.Name == name {
+			if option.parentID != nil && *option.parentID != channel.ParentID {
+				continue
+			}
 			return channel, nil
 		}
 	}
 
 	return nil, ErrResourceNotFound
+}
+
+func (c *Channel) Exist(ctx context.Context, category discordgo.ChannelType, guildID, name string) (bool, error) {
+	_, err := c.Get(ctx, category, guildID, name)
+	if err != nil {
+		if errors.Is(err, ErrResourceNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func (c *Channel) Create(ctx context.Context, category discordgo.ChannelType, guildID, name, parentID string) (*discordgo.Channel, error) {
@@ -80,13 +111,9 @@ func (c *Channel) Create(ctx context.Context, category discordgo.ChannelType, gu
 	return result, nil
 }
 
-func (c *Channel) Exist(ctx context.Context, category discordgo.ChannelType, guildID, name string) (bool, error) {
-	_, err := c.Get(ctx, category, guildID, name)
-	if err != nil {
-		if errors.Is(err, ErrResourceNotFound) {
-			return false, nil
-		}
-		return false, err
+func (c *Channel) Delete(ctx context.Context, channelID string) error {
+	if _, err := c.ss.ChannelDelete(channelID, discordgo.WithContext(ctx)); err != nil {
+		return err
 	}
-	return true, nil
+	return nil
 }

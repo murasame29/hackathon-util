@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCreateCommands() *cobra.Command {
+func NewCommands() *cobra.Command {
 	createCmdRoot := &cobra.Command{
 		Use: "create",
 	}

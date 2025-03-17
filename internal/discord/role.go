@@ -39,6 +39,17 @@ func (r *Role) Get(ctx context.Context, guildID, name string) (*discordgo.Role, 
 	return nil, ErrResourceNotFound
 }
 
+func (r *Role) Exist(ctx context.Context, guildID, name string) (bool, error) {
+	_, err := r.Get(ctx, guildID, name)
+	if err != nil {
+		if errors.Is(err, ErrResourceNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func (r *Role) Create(ctx context.Context, guildID, name string) (*discordgo.Role, error) {
 	ok, err := r.Exist(ctx, guildID, name)
 	if err != nil {
@@ -60,13 +71,10 @@ func (r *Role) Create(ctx context.Context, guildID, name string) (*discordgo.Rol
 	return result, nil
 }
 
-func (r *Role) Exist(ctx context.Context, guildID, name string) (bool, error) {
-	_, err := r.Get(ctx, guildID, name)
-	if err != nil {
-		if errors.Is(err, ErrResourceNotFound) {
-			return false, nil
-		}
-		return false, err
+func (r *Role) Delete(ctx context.Context, guildID, roleID string) error {
+	if err := r.ss.GuildRoleDelete(guildID, roleID, discordgo.WithContext(ctx)); err != nil {
+		return err
 	}
-	return true, nil
+
+	return nil
 }
