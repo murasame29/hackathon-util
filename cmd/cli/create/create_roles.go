@@ -11,7 +11,7 @@ func NewCreateRolesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   `role (-f FILE | -s "sheetID" -r "range ("sheet!a:b")`,
 		Short: "create to role",
-		Long:  "create to role (会議,雑談,VC) in discord server",
+		Long:  "create to role in discord server",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := o.Complete(); err != nil {
 				return err

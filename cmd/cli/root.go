@@ -3,8 +3,10 @@ package cli
 import (
 	"log"
 
+	bindCmd "github.com/murasame29/hackathon-util/cmd/cli/bind"
 	createCmd "github.com/murasame29/hackathon-util/cmd/cli/create"
 	deleteCmd "github.com/murasame29/hackathon-util/cmd/cli/delete"
+
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +25,7 @@ func Execute() {
 func init() {
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	RootCmd.AddCommand(
+		bindCmd.NewCommands(),
 		createCmd.NewCommands(),
 		deleteCmd.NewCommands(),
 	)

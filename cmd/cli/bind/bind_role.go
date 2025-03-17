@@ -1,17 +1,17 @@
-package delete
+package bind
 
 import (
-	deleteApp "github.com/murasame29/hackathon-util/internal/application/delete"
+	"github.com/murasame29/hackathon-util/internal/application/bind"
 	"github.com/spf13/cobra"
 )
 
-func NewDeleteRolesCommand() *cobra.Command {
-	o := deleteApp.NewDeleteRolesOptions()
+func NewBindRoleCommand() *cobra.Command {
+	o := bind.NewBindRoleOptions()
 
 	cmd := &cobra.Command{
-		Use:   `role (-f FILE | -s "sheetID" -r "range ("sheet!a:b")`,
-		Short: "delete to role",
-		Long:  "delete to role in discord server",
+		Use:   `role  (-f FILE | -s "sheetID" -r "range ("sheet!a:b")`,
+		Short: "binding roles to members",
+		Long:  "binding roles to members",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := o.Complete(); err != nil {
 				return err
