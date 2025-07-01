@@ -45,14 +45,11 @@ func (dh *DiscordHandler) createCommand() {
 		BreakoutRoomCommand,
 	}
 	id := dh.ss.State.User.ID
-	guildIDs := config.Config.Discord.GuildID
 	for _, command := range commands {
-		for _, guildID := range guildIDs {
-			_, err := dh.ss.ApplicationCommandCreate(id, guildID, command)
-			logger.Info(context.Background(), command.Name)
-			if err != nil {
-				logger.Error(context.Background(), err.Error())
-			}
+		_, err := dh.ss.ApplicationCommandCreate(id, config.Config.Discord.GuildID, command)
+		logger.Info(context.Background(), command.Name)
+		if err != nil {
+			logger.Error(context.Background(), err.Error())
 		}
 	}
 }

@@ -1,6 +1,6 @@
 package config
 
-var Config *config
+var Config *EnvironmentsVariables
 
 type Env string
 
@@ -9,7 +9,7 @@ const (
 	Prod Env = "prod"
 )
 
-type config struct {
+type EnvironmentsVariables struct {
 	Application struct {
 		Env     Env    `env:"ENV"`
 		Version string `env:"VERSION"`
@@ -22,8 +22,8 @@ type config struct {
 	}
 
 	Discord struct {
-		BotToken string   `env:"DISCORD_BOT_TOKEN"`
-		GuildID  []string `env:"DISCORD_GUILD_ID" envSeparator:","`
+		BotToken string `env:"DISCORD_BOT_TOKEN"`
+		GuildID  string `env:"DISCORD_GUILD_ID"`
 	}
 
 	Google struct {
