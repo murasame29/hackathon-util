@@ -107,6 +107,24 @@ func main() {
 		}
 	}
 
+	mentionable := true
+	allRoleID, exists := existingRoles[allRoleName]
+	if !exists {
+		// ロールが存在しない場合は作成
+		role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
+			Name:        allRoleName,
+			Mentionable: &mentionable,
+		})
+		if err != nil {
+			log.Printf("[ERROR] Failed to create ALL_MEMBERS role '%s': %v", allRoleName, err)
+		} else {
+			allRoleID = role.ID
+			log.Printf("[OK] ALL_MEMBERS role created: %s", allRoleName)
+		}
+	} else {
+		log.Printf("[SKIP] ALL_MEMBERS role already exists: %s", allRoleName)
+	}
+
 	// 各チーム処理
 	for _, row := range teamData {
 		if len(row) == 0 {
@@ -117,7 +135,6 @@ func main() {
 			continue
 		}
 
-		mentionable := true
 		var roleID string
 
 		// ロール作成または取得
@@ -225,23 +242,6 @@ func main() {
 			} else {
 				log.Printf("[OK] Assigned role '%s' to %s", teamName, username)
 			}
-		}
-
-		allRoleID, exists := existingRoles[allRoleName]
-		if !exists {
-			// ロールが存在しない場合は作成
-			role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
-				Name:        allRoleName,
-				Mentionable: &mentionable,
-			})
-			if err != nil {
-				log.Printf("[ERROR] Failed to create ALL_MEMBERS role '%s': %v", allRoleName, err)
-			} else {
-				allRoleID = role.ID
-				log.Printf("[OK] ALL_MEMBERS role created: %s", allRoleName)
-			}
-		} else {
-			log.Printf("[SKIP] ALL_MEMBERS role already exists: %s", allRoleName)
 		}
 
 		for i := 1; i <= 5; i++ {
