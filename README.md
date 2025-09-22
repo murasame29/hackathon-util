@@ -100,7 +100,7 @@ DISCORD_GUILD_ID=                                                      # 対象�
 
 ```bash
 # パッケージのインストール
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 ```
 
 `.docker/app/sheetless.air.toml` のローカル用のコメントアウトを外す
