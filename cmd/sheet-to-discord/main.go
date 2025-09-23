@@ -60,6 +60,33 @@ func buildUsernameToIDMap(dg *discordgo.Session, guildID string, max int) (map[s
 	return userMap, nil
 }
 
+func buildPermissionOverwrites(paricipantsRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
+	overwrites := []*discordgo.PermissionOverwrite{
+		{
+			// @everyone
+			ID: guildID,
+			Type: discordgo.PermissionOverwriteTypeRole,
+			Deny: discordgo.PermissionViewChannel,
+			Allow: 0,
+		},
+		{
+			// @ハッカソン参加者
+			ID: paricipantsRoleID,
+			Type: discordgo.PermissionOverwriteTypeRole,
+			Deny: 0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+		{
+			// @ハッカソンメンター
+			ID: mentorRoleID,
+			Type: discordgo.PermissionOverwriteTypeRole,
+			Deny: 0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+	}
+	return overwrites
+}
+
 func main() {
 	loadEnv()
 
@@ -125,6 +152,9 @@ func main() {
 		log.Printf("[SKIP] ALL_MEMBERS role already exists: %s", allRoleName)
 	}
 
+	// チャンネルの権限設定
+	overwrites := buildPermissionOverwrites(allRoleID, "", guildID)
+
 	// 各チーム処理
 	for _, row := range teamData {
 		if len(row) == 0 {
@@ -186,6 +216,7 @@ func main() {
 				Name:     "会話",
 				Type:     discordgo.ChannelTypeGuildVoice,
 				ParentID: categoryID,
+				PermissionOverwrites: overwrites,
 			})
 			if err != nil {
 				log.Printf("[ERROR] Voice channel create: %s - %v", teamName, err)
