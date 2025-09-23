@@ -76,13 +76,13 @@ func buildPermissionOverwrites(paricipantsRoleID, mentorRoleID, guildID string) 
 			Deny: 0,
 			Allow: discordgo.PermissionViewChannel,
 		},
-		{
-			// @ハッカソンメンター
-			ID: mentorRoleID,
-			Type: discordgo.PermissionOverwriteTypeRole,
-			Deny: 0,
-			Allow: discordgo.PermissionViewChannel,
-		},
+		// {
+		// 	// @ハッカソンメンター
+		// 	ID: mentorRoleID,
+		// 	Type: discordgo.PermissionOverwriteTypeRole,
+		// 	Deny: 0,
+		// 	Allow: discordgo.PermissionViewChannel,
+		// },
 	}
 	return overwrites
 }
