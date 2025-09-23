@@ -65,9 +65,9 @@ func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, ex
 	mentorRoleName := "メンター_" + eventName
 	mentorRoleColor := 3447003 // #3498db
 
-	var paricipantsRoleID, mentorRoleID string
+	var participantsRoleID, mentorRoleID string
 	// @参加者_{ハッカソン名}
-	paricipantsRoleID, p_exists := existingRoles[participantsRoleName]
+	participantsRoleID, p_exists := existingRoles[participantsRoleName]
 	if !p_exists {
 		// ロールが存在しない場合は作成
 		role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
@@ -77,7 +77,7 @@ func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, ex
 		if err != nil {
 			log.Printf("[ERROR] Failed to create participants role '%s': %v", participantsRoleName, err)
 		} else {
-			paricipantsRoleID = role.ID
+			participantsRoleID = role.ID
 			log.Printf("[OK] participants role created: %s", participantsRoleName)
 		}
 	} else {
@@ -91,7 +91,7 @@ func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, ex
 		role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
 			Name:        mentorRoleName,
 			Mentionable: &mentionable,
-			Color:		 &mentorRoleColor,
+			Color:       &mentorRoleColor,
 		})
 		if err != nil {
 			log.Printf("[ERROR] Failed to create mentor role '%s': %v", mentorRoleName, err)
@@ -103,30 +103,30 @@ func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, ex
 		log.Printf("[SKIP] mentor role already exists: %s", mentorRoleName)
 	}
 
-	return paricipantsRoleID, mentorRoleID, nil
+	return participantsRoleID, mentorRoleID, nil
 }
 
-func buildPermissionOverwrites(paricipantsRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
+func buildPermissionOverwrites(participantsRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
 	overwrites := []*discordgo.PermissionOverwrite{
 		{
 			// @everyone
-			ID: guildID,
-			Type: discordgo.PermissionOverwriteTypeRole,
-			Deny: discordgo.PermissionViewChannel,
+			ID:    guildID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  discordgo.PermissionViewChannel,
 			Allow: 0,
 		},
 		{
 			// @ハッカソン参加者
-			ID: paricipantsRoleID,
-			Type: discordgo.PermissionOverwriteTypeRole,
-			Deny: 0,
+			ID:    participantsRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
 			Allow: discordgo.PermissionViewChannel,
 		},
 		{
 			// @ハッカソンメンター
-			ID: mentorRoleID,
-			Type: discordgo.PermissionOverwriteTypeRole,
-			Deny: 0,
+			ID:    mentorRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
 			Allow: discordgo.PermissionViewChannel,
 		},
 	}
@@ -245,9 +245,9 @@ func main() {
 			}
 
 			_, err = dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
-				Name:     "会話",
-				Type:     discordgo.ChannelTypeGuildVoice,
-				ParentID: categoryID,
+				Name:                 "会話",
+				Type:                 discordgo.ChannelTypeGuildVoice,
+				ParentID:             categoryID,
 				PermissionOverwrites: overwrites,
 			})
 			if err != nil {
