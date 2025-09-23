@@ -63,6 +63,7 @@ func buildUsernameToIDMap(dg *discordgo.Session, guildID string, max int) (map[s
 func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, existingRoles map[string]string, mentionable bool) (string, string, error) {
 	participantsRoleName := "参加者_" + eventName
 	mentorRoleName := "メンター_" + eventName
+	mentorRoleColor := 3447003 // #3498db
 
 	var paricipantsRoleID, mentorRoleID string
 	// @参加者_{ハッカソン名}
@@ -90,6 +91,7 @@ func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, ex
 		role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
 			Name:        mentorRoleName,
 			Mentionable: &mentionable,
+			Color:		 &mentorRoleColor,
 		})
 		if err != nil {
 			log.Printf("[ERROR] Failed to create mentor role '%s': %v", mentorRoleName, err)
