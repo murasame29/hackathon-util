@@ -12,10 +12,12 @@
 Googleスプレッドシートからチーム情報を読み取り、Discordにロール・カテゴリ・チャンネルを自動生成するスクリプト
 
 **機能:**
+- 全参加者用の共通ロール`@参加者_{EVENT_NAME}`の付与
+- メンター用ロール`@メンター_{EVENT_ROLE}`の作成
 - チームごとのロール作成
 - チームごとのカテゴリ作成（テキストチャンネル「やりとり」とボイスチャンネル「会話」を含む）
+  - ボイスチャンネル「会話」は、全参加者用ロールまたはメンター用ロールを持っている人のみに表示
 - メンバーへのロール自動付与
-- 全参加者用の共通ロール（ALL_MEMBERS）の付与
 - Discord上に存在しないユーザーの一覧表示
 
 **実行方法:**
@@ -32,7 +34,7 @@ go run cmd/sheet-to-discord/main.go
 **機能:**
 - スプレッドシートに記載されたチームのカテゴリ・チャンネル削除
 - チームロールの削除とメンバーからの削除
-- オプションで全参加者ロール（ALL_MEMBERS）からメンバーを削除
+- オプションで全参加者ロール`@参加者_{EVENT_NAME}`からメンバーを削除
 
 **実行方法:**
 ```bash
@@ -42,7 +44,7 @@ DRY_RUN=true go run cmd/sheet-to-discord-delete/main.go
 # 実際に削除
 DRY_RUN=false go run cmd/sheet-to-discord-delete/main.go
 
-# ALL_MEMBERSロールからもメンバーを削除する場合
+# 参加者ロールからもメンバーを削除する場合
 DRY_RUN=false REMOVE_ALL_MEMBERS=true go run cmd/sheet-to-discord-delete/main.go
 ```
 
@@ -71,7 +73,7 @@ ENV=dev                                                                # 開発�
 GOOGLE_SPREADSHEET_ID=    # 対象のスプレッドシートID
 TEAM_RANGE=チームシート!A2:F15                                         # チーム情報の範囲
 GOOGLE_CREDENTIALS_FILE=./credential.json                             # Google認証情報ファイルのパス
-ALL_MEMBERS=参加者_Progateハッカソン_25.6                              # 全参加者用ロール名
+EVENT_NAME=Progateハッカソン_25.6                                       # 参加者・メンターロール用
 
 # Discord Env
 DISCORD_BOT_TOKEN=                                                     # DiscordのBotトークン
@@ -100,7 +102,7 @@ DISCORD_GUILD_ID=                                                      # 対象�
 
 ```bash
 # パッケージのインストール
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 ```
 
 `.docker/app/sheetless.air.toml` のローカル用のコメントアウトを外す

@@ -60,6 +60,79 @@ func buildUsernameToIDMap(dg *discordgo.Session, guildID string, max int) (map[s
 	return userMap, nil
 }
 
+func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, existingRoles map[string]string, mentionable bool) (string, string, error) {
+	participantsRoleName := "参加者_" + eventName
+	mentorRoleName := "メンター_" + eventName
+	mentorRoleColor := 3447003 // #3498db
+
+	var participantsRoleID, mentorRoleID string
+	// @参加者_{ハッカソン名}
+	participantsRoleID, p_exists := existingRoles[participantsRoleName]
+	if !p_exists {
+		// ロールが存在しない場合は作成
+		role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
+			Name:        participantsRoleName,
+			Mentionable: &mentionable,
+		})
+		if err != nil {
+			log.Printf("[ERROR] Failed to create participants role '%s': %v", participantsRoleName, err)
+		} else {
+			participantsRoleID = role.ID
+			log.Printf("[OK] participants role created: %s", participantsRoleName)
+		}
+	} else {
+		log.Printf("[SKIP] participants role already exists: %s", participantsRoleName)
+	}
+
+	// @メンター_{ハッカソン名}
+	mentorRoleID, m_exists := existingRoles[mentorRoleName]
+	if !m_exists {
+		// ロールが存在しない場合は作成
+		role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
+			Name:        mentorRoleName,
+			Mentionable: &mentionable,
+			Color:       &mentorRoleColor,
+		})
+		if err != nil {
+			log.Printf("[ERROR] Failed to create mentor role '%s': %v", mentorRoleName, err)
+		} else {
+			mentorRoleID = role.ID
+			log.Printf("[OK] mentor role created: %s", mentorRoleName)
+		}
+	} else {
+		log.Printf("[SKIP] mentor role already exists: %s", mentorRoleName)
+	}
+
+	return participantsRoleID, mentorRoleID, nil
+}
+
+func buildPermissionOverwrites(participantsRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
+	overwrites := []*discordgo.PermissionOverwrite{
+		{
+			// @everyone
+			ID:    guildID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  discordgo.PermissionViewChannel,
+			Allow: 0,
+		},
+		{
+			// @ハッカソン参加者
+			ID:    participantsRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+		{
+			// @ハッカソンメンター
+			ID:    mentorRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+	}
+	return overwrites
+}
+
 func main() {
 	loadEnv()
 
@@ -68,9 +141,9 @@ func main() {
 	guildID := os.Getenv("DISCORD_GUILD_ID")
 	credentialsFile := os.Getenv("GOOGLE_CREDENTIALS_FILE")
 	teamRange := os.Getenv("TEAM_RANGE")
-	allRoleName := os.Getenv("ALL_MEMBERS")
+	eventName := os.Getenv("EVENT_NAME")
 
-	if spreadsheetID == "" || botToken == "" || guildID == "" || credentialsFile == "" || teamRange == "" || allRoleName == "" {
+	if spreadsheetID == "" || botToken == "" || guildID == "" || credentialsFile == "" || teamRange == "" || eventName == "" {
 		log.Fatal("One or more required environment variables are not set.")
 	}
 	notFoundUsers := []string{} // ← 追加：見つからなかったユーザー一覧
@@ -107,6 +180,13 @@ func main() {
 		}
 	}
 
+	// 参加者ロール・メンターロール作成
+	mentionable := true
+	participantsRoleId, mentorRoleId, _ := createParticipantsRole(dg, guildID, eventName, existingRoles, mentionable)
+
+	// チャンネルの権限設定
+	overwrites := buildPermissionOverwrites(participantsRoleId, mentorRoleId, guildID)
+
 	// 各チーム処理
 	for _, row := range teamData {
 		if len(row) == 0 {
@@ -117,7 +197,6 @@ func main() {
 			continue
 		}
 
-		mentionable := true
 		var roleID string
 
 		// ロール作成または取得
@@ -166,9 +245,10 @@ func main() {
 			}
 
 			_, err = dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
-				Name:     "会話",
-				Type:     discordgo.ChannelTypeGuildVoice,
-				ParentID: categoryID,
+				Name:                 "会話",
+				Type:                 discordgo.ChannelTypeGuildVoice,
+				ParentID:             categoryID,
+				PermissionOverwrites: overwrites,
 			})
 			if err != nil {
 				log.Printf("[ERROR] Voice channel create: %s - %v", teamName, err)
@@ -227,23 +307,6 @@ func main() {
 			}
 		}
 
-		allRoleID, exists := existingRoles[allRoleName]
-		if !exists {
-			// ロールが存在しない場合は作成
-			role, err := dg.GuildRoleCreate(guildID, &discordgo.RoleParams{
-				Name:        allRoleName,
-				Mentionable: &mentionable,
-			})
-			if err != nil {
-				log.Printf("[ERROR] Failed to create ALL_MEMBERS role '%s': %v", allRoleName, err)
-			} else {
-				allRoleID = role.ID
-				log.Printf("[OK] ALL_MEMBERS role created: %s", allRoleName)
-			}
-		} else {
-			log.Printf("[SKIP] ALL_MEMBERS role already exists: %s", allRoleName)
-		}
-
 		for i := 1; i <= 5; i++ {
 			var rawUsername string
 			if i < len(row) {
@@ -272,7 +335,7 @@ func main() {
 			// 重複チェック
 			hasRole := false
 			for _, r := range member.Roles {
-				if r == allRoleID {
+				if r == participantsRoleId {
 					hasRole = true
 					break
 				}
@@ -282,7 +345,7 @@ func main() {
 				continue
 			}
 
-			err = dg.GuildMemberRoleAdd(guildID, userID, allRoleID)
+			err = dg.GuildMemberRoleAdd(guildID, userID, participantsRoleId)
 			if err != nil {
 				log.Printf("[ERROR] Failed to assign ALL_MEMBERS role to %s: %v", username, err)
 			} else {
