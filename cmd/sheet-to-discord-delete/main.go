@@ -166,7 +166,7 @@ func main() {
 	guildID := mustEnv("DISCORD_GUILD_ID")
 	credentialsFile := mustEnv("GOOGLE_CREDENTIALS_FILE")
 	teamRange := mustEnv("TEAM_RANGE")
-	allRoleName := mustEnv("ALL_MEMBERS")
+	participantsRoleName := "参加者_" + mustEnv("EVENT_NAME")
 	dryRun := getenvBool("DRY_RUN", true)
 	removeAllMembers := getenvBool("REMOVE_ALL_MEMBERS", false)
 
@@ -238,10 +238,10 @@ func main() {
 
 	// 3) Optionally remove ALL_MEMBERS role from all assigned users (but DO NOT delete the role)
 	if removeAllMembers {
-		if roleID, ok := existingRoles[allRoleName]; ok {
-			removeRoleFromAllMembers(dg, guildID, roleID, allRoleName, dryRun)
+		if roleID, ok := existingRoles[participantsRoleName]; ok {
+			removeRoleFromAllMembers(dg, guildID, roleID, participantsRoleName, dryRun)
 		} else {
-			log.Printf("[SKIP] ALL_MEMBERS role '%s' not found", allRoleName)
+			log.Printf("[SKIP] ALL_MEMBERS role '%s' not found", participantsRoleName)
 		}
 	}
 
