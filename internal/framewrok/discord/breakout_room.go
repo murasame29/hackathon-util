@@ -155,7 +155,7 @@ func (dh *DiscordHandler) BreakoutRoom(s *discordgo.Session, i *discordgo.Intera
 
 func getUsersInChannel(s *discordgo.Session, channelID string) ([]string, error) {
 	// Fetch the voice states for the guild
-	guild, err := s.State.Guild(config.Config.Discord.GuildID[0])
+	guild, err := s.State.Guild(config.Config.Discord.GuildID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch guild: %v", err)
 	}

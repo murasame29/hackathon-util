@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"flag"
+
+	// "github.com/joho/godotenv"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 
 	"github.com/murasame29/hackathon-util/cmd/config"
 	"github.com/murasame29/hackathon-util/internal/container"
 	"github.com/murasame29/hackathon-util/internal/framewrok/discord"
-	"github.com/murasame29/hackathon-util/internal/server"
 	"github.com/murasame29/hackathon-util/pkg/logger"
 )
 
@@ -31,7 +31,7 @@ func init() {
 	var envFile envFlag
 	flag.Var(&envFile, "e", "path to .env file \n eg. -e .env -e another.env . ")
 	flag.Parse()
-
+	log.Println(envFile)
 	if err := config.LoadEnv(envFile...); err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -47,30 +47,17 @@ func run() error {
 	ctx := logger.NewLoggerWithContext(context.Background())
 
 	if err := container.NewContainer(); err != nil {
-		logger.Error(ctx, err.Error())
-		return err
-	}
-	var (
-		httpHandler    http.Handler
-		discordHandler *discord.DiscordHandler
-	)
-	if err := container.Provide(func(dh *discord.DiscordHandler) {
-		discordHandler = dh
-	}); err != nil {
-		logger.Error(ctx, err.Error())
 		return err
 	}
 
-	if err := container.Provide(func(h http.Handler) {
-		httpHandler = h
-	}); err != nil {
-		logger.Error(ctx, err.Error())
+	discordHandler, err := container.Provide[*discord.DiscordHandler]()
+	if err != nil {
 		return err
 	}
 
-	server.
-		New(config.Config.Application.Addr, httpHandler, discordHandler).
-		RunWithGraceful(ctx)
+	if err := discordHandler.Open(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }
