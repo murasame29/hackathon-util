@@ -223,9 +223,40 @@ func main() {
 			categoryID = id
 			log.Printf("[SKIP] Category already exists: %s", teamName)
 		} else {
+			// カテゴリの権限設定を作成
+			var categoryOverwrites []*discordgo.PermissionOverwrite
+			enablePrivateCategory := os.Getenv("ENABLE_PRIVATE_CATEGORY") == "true"
+
+			if enablePrivateCategory {
+				categoryOverwrites = []*discordgo.PermissionOverwrite{
+					{
+						// @everyone: 閲覧不可
+						ID:    guildID,
+						Type:  discordgo.PermissionOverwriteTypeRole,
+						Deny:  discordgo.PermissionViewChannel,
+						Allow: 0,
+					},
+					{
+						// チームロール: 閲覧可能
+						ID:    roleID,
+						Type:  discordgo.PermissionOverwriteTypeRole,
+						Deny:  0,
+						Allow: discordgo.PermissionViewChannel,
+					},
+					{
+						// メンターロール: 閲覧可能
+						ID:    mentorRoleId,
+						Type:  discordgo.PermissionOverwriteTypeRole,
+						Deny:  0,
+						Allow: discordgo.PermissionViewChannel,
+					},
+				}
+			}
+
 			category, err := dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
-				Name: teamName,
-				Type: discordgo.ChannelTypeGuildCategory,
+				Name:                 teamName,
+				Type:                 discordgo.ChannelTypeGuildCategory,
+				PermissionOverwrites: categoryOverwrites,
 			})
 			if err != nil {
 				log.Printf("[ERROR] Category create: %s - %v", teamName, err)
@@ -244,12 +275,19 @@ func main() {
 				log.Printf("[ERROR] Text channel create: %s - %v", teamName, err)
 			}
 
-			_, err = dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
-				Name:                 "会話",
-				Type:                 discordgo.ChannelTypeGuildVoice,
-				ParentID:             categoryID,
-				PermissionOverwrites: overwrites,
-			})
+			voiceChannelData := discordgo.GuildChannelCreateData{
+				Name:     "会話",
+				Type:     discordgo.ChannelTypeGuildVoice,
+				ParentID: categoryID,
+			}
+
+			// プライベートカテゴリが無効な場合は、ボイスチャンネルに個別の権限を設定する
+			// (プライベートカテゴリが有効な場合は、カテゴリの権限を継承するため設定不要)
+			if !enablePrivateCategory {
+				voiceChannelData.PermissionOverwrites = overwrites
+			}
+
+			_, err = dg.GuildChannelCreateComplex(guildID, voiceChannelData)
 			if err != nil {
 				log.Printf("[ERROR] Voice channel create: %s - %v", teamName, err)
 			}
