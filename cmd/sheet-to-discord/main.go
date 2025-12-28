@@ -183,11 +183,19 @@ func buildPublicPermissionOverwrites(guildId string) []*discordgo.PermissionOver
 	}
 }
 
+func findTextChannelID(channels []*discordgo.Channel, categoryID string) (string, error) {
+	for _, ch := range channels {
+		if ch.Name == "やりとり" && ch.ParentID == categoryID && ch.Type == discordgo.ChannelTypeGuildText {
+			return ch.ID, nil
+		}
+	}
+	return "", fmt.Errorf("[ERROR] Text Channel not found in Category")
+}
+
 func findVoiceChannelID(channels []*discordgo.Channel, categoryID string) (string, error) {
 	for _, ch := range channels {
 		if ch.Name == "会話" && ch.ParentID == categoryID && ch.Type == discordgo.ChannelTypeGuildVoice {
 			return ch.ID, nil
-			break
 		}
 	}
 	return "", fmt.Errorf("[ERROR] Voice Channel not found in Category")
@@ -293,6 +301,8 @@ func main() {
 		categoryOverwrites := buildPublicPermissionOverwrites(guildID)
 		if enablePrivateCategory {
 			categoryOverwrites = buildCategoryPermissionOverwrites(roleID, mentorRoleId, guildID)
+			// vc権限をカテゴリ権限で上書き
+			overwrites = categoryOverwrites
 		}
 
 		// カテゴリ作成または取得
@@ -300,7 +310,7 @@ func main() {
 		if id, exists := existingCategories[teamName]; exists {
 			categoryID = id
 			log.Printf("[SKIP] Category already exists: %s", teamName)
-			
+
 			// カテゴリ権限を更新
 			err := updateChannelPermissions(dg, categoryID, categoryOverwrites)
 			if err != nil {
@@ -308,7 +318,21 @@ func main() {
 			} else {
 				log.Printf("[OK] Category permission updated: %s", teamName)
 			}
-			
+
+			// カテゴリとチャンネル権限が自動同期されないため、個別で更新
+			// テキストチャンネル権限を更新
+			textChannelID, err := findTextChannelID(channels, categoryID)
+			if err != nil {
+				log.Printf("[ERROR] find Text channel: %s - %v", teamName, err)
+			} else {
+				err = updateChannelPermissions(dg, textChannelID, categoryOverwrites)
+				if err != nil {
+					log.Printf("[ERROR] update Text permission: %s - %v, teamName, err")
+				} else {
+					log.Printf("[OK] Text channel permission updated: %s", teamName)
+				}
+			}
+
 			// VC権限を更新
 			vcID, err := findVoiceChannelID(channels, categoryID)
 			if err != nil {
