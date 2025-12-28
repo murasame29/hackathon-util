@@ -16,7 +16,8 @@ Googleスプレッドシートからチーム情報を読み取り、Discordに�
 - メンター用ロール`@メンター_{EVENT_NAME}`の作成
 - チームごとのロール作成
 - チームごとのカテゴリ作成（テキストチャンネル「やりとり」とボイスチャンネル「会話」を含む）
-  - オプションでボイスチャンネル「会話」は、全参加者用ロールまたはメンター用ロールを持っている人のみに表示する
+  - オプション`PRIVATE_VC`でボイスチャンネル「会話」は、全参加者用ロールまたはメンター用ロールを持っている人のみに表示する
+  - オプション`PRIVATE_CATEGORY`でチームカテゴリは、該当チームロールまたはメンター用ロールを持っている人のみに表示する（他チームのカテゴリが非表示になる）
 - メンバーへのロール自動付与
 - Discord上に存在しないユーザーの一覧表示
 
@@ -27,8 +28,11 @@ Googleスプレッドシートからチーム情報を読み取り、Discordに�
 ```bash
 go run cmd/sheet-to-discord/main.go
 
-# ボイスチャンネル「会話」をプライベートチャンネルにする
-LIMITED_VC=true go run cmd/sheet-to-discord/main.go
+# ボイスチャンネル「会話」のみをプライベートチャンネルにする
+PRIVATE_VC=true go run cmd/sheet-to-discord/main.go
+
+# カテゴリをプライベートにする
+PRIVATE_CATEGORY=true go run cmd/sheet-to-discord/main.go
 ```
 
 ### cmd/sheet-to-discord-delete

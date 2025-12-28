@@ -117,7 +117,7 @@ func createParticipantsRole(dg *discordgo.Session, guildID, eventName string, ex
 	return participantsRoleID, mentorRoleID, nil
 }
 
-func buildPermissionOverwrites(participantsRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
+func buildVCPermissionOverwrites(participantsRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
 	overwrites := []*discordgo.PermissionOverwrite{
 		{
 			// @everyone
@@ -144,15 +144,45 @@ func buildPermissionOverwrites(participantsRoleID, mentorRoleID, guildID string)
 	return overwrites
 }
 
-func updatePermissionOverwrites(dg *discordgo.Session, overwrites []*discordgo.PermissionOverwrite, channels []*discordgo.Channel, categoryID string) error {
-	var vcCh *discordgo.Channel
+func buildCategoryPermissionOverwrites(teamRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
+	overwrites := []*discordgo.PermissionOverwrite{
+		{
+			// @everyone
+			ID:    guildID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  discordgo.PermissionViewChannel,
+			Allow: 0,
+		},
+		{
+			// @チームロール
+			ID:    teamRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+		{
+			// @ハッカソンメンター
+			ID:    mentorRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+	}
+	return overwrites
+}
+
+func findVoiceChannelID(channels []*discordgo.Channel, categoryID string) (string, error) {
 	for _, ch := range channels {
 		if ch.Name == "会話" && ch.ParentID == categoryID && ch.Type == discordgo.ChannelTypeGuildVoice {
-			vcCh = ch
+			return ch.ID, nil
 			break
 		}
 	}
-	_, err := dg.ChannelEditComplex(vcCh.ID, &discordgo.ChannelEdit{
+	return "", fmt.Errorf("[ERROR] Voice Channel not found in Category")
+}
+
+func updateChannelPermissions(dg *discordgo.Session, channelID string, overwrites []*discordgo.PermissionOverwrite) error {
+	_, err := dg.ChannelEditComplex(channelID, &discordgo.ChannelEdit{
 		PermissionOverwrites: overwrites,
 	})
 	return err
@@ -167,7 +197,8 @@ func main() {
 	credentialsFile := os.Getenv("GOOGLE_CREDENTIALS_FILE")
 	teamRange := os.Getenv("TEAM_RANGE")
 	eventName := os.Getenv("EVENT_NAME")
-	enableLimitedVC := getenvBool("LIMITED_VC", false)
+	enablePrivateVC := getenvBool("PRIVATE_VC", false)
+	enablePrivateCategory := getenvBool("PRIVATE_CATEGORY", false)
 
 	if spreadsheetID == "" || botToken == "" || guildID == "" || credentialsFile == "" || teamRange == "" || eventName == "" {
 		log.Fatal("One or more required environment variables are not set.")
@@ -211,9 +242,9 @@ func main() {
 	participantsRoleId, mentorRoleId, _ := createParticipantsRole(dg, guildID, eventName, existingRoles, mentionable)
 
 	// チャンネルの権限設定
-	var overwrites []*discordgo.PermissionOverwrite = nil
-	if enableLimitedVC {
-		overwrites = buildPermissionOverwrites(participantsRoleId, mentorRoleId, guildID)
+	var overwrites []*discordgo.PermissionOverwrite
+	if enablePrivateVC {
+		overwrites = buildVCPermissionOverwrites(participantsRoleId, mentorRoleId, guildID)
 	}
 
 	// 各チーム処理
@@ -246,48 +277,39 @@ func main() {
 			log.Printf("[OK] Role created: %s", teamName)
 		}
 
+		// カテゴリの権限設定
+		var categoryOverwrites []*discordgo.PermissionOverwrite
+		if enablePrivateCategory {
+			categoryOverwrites = buildCategoryPermissionOverwrites(roleID, mentorRoleId, guildID)
+		}
+
 		// カテゴリ作成または取得
 		var categoryID string
 		if id, exists := existingCategories[teamName]; exists {
 			categoryID = id
 			log.Printf("[SKIP] Category already exists: %s", teamName)
-			err := updatePermissionOverwrites(dg, overwrites, channels, categoryID)
+			
+			// カテゴリ権限を更新
+			err := updateChannelPermissions(dg, categoryID, categoryOverwrites)
 			if err != nil {
-				log.Printf("[ERROR] update permission: %s - %v", teamName, err)
+				log.Printf("[ERROR] update category permission: %s - %v", teamName, err)
 			} else {
-				log.Printf("[OK] VC channel permission updated: %s", teamName)
+				log.Printf("[OK] Category permission updated: %s", teamName)
 			}
-		} else {
-			// カテゴリの権限設定を作成
-			var categoryOverwrites []*discordgo.PermissionOverwrite
-			enablePrivateCategory := os.Getenv("ENABLE_PRIVATE_CATEGORY") == "true"
-
-			if enablePrivateCategory {
-				categoryOverwrites = []*discordgo.PermissionOverwrite{
-					{
-						// @everyone: 閲覧不可
-						ID:    guildID,
-						Type:  discordgo.PermissionOverwriteTypeRole,
-						Deny:  discordgo.PermissionViewChannel,
-						Allow: 0,
-					},
-					{
-						// チームロール: 閲覧可能
-						ID:    roleID,
-						Type:  discordgo.PermissionOverwriteTypeRole,
-						Deny:  0,
-						Allow: discordgo.PermissionViewChannel,
-					},
-					{
-						// メンターロール: 閲覧可能
-						ID:    mentorRoleId,
-						Type:  discordgo.PermissionOverwriteTypeRole,
-						Deny:  0,
-						Allow: discordgo.PermissionViewChannel,
-					},
+			
+			// VC権限を更新
+			vcID, err := findVoiceChannelID(channels, categoryID)
+			if err != nil {
+				log.Printf("[ERROR] find VC channel: %s - %v", teamName, err)
+			} else {
+				err = updateChannelPermissions(dg, vcID, overwrites)
+				if err != nil {
+					log.Printf("[ERROR] update VC permission: %s - %v", teamName, err)
+				} else {
+					log.Printf("[OK] VC channel permission updated: %s", teamName)
 				}
 			}
-
+		} else {
 			category, err := dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
 				Name:                 teamName,
 				Type:                 discordgo.ChannelTypeGuildCategory,
