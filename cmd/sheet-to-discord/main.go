@@ -262,9 +262,9 @@ func main() {
 	participantsRoleId, mentorRoleId, _ := createParticipantsRole(dg, guildID, eventName, existingRoles, mentionable)
 
 	// チャンネルの権限設定
-	overwrites := buildPublicPermissionOverwrites(guildID)
+	vcOverwrites := buildPublicPermissionOverwrites(guildID)
 	if enablePrivateVC {
-		overwrites = buildVCPermissionOverwrites(participantsRoleId, mentorRoleId, guildID)
+		vcOverwrites = buildVCPermissionOverwrites(participantsRoleId, mentorRoleId, guildID)
 	}
 
 	// 各チーム処理
@@ -302,7 +302,7 @@ func main() {
 		if enablePrivateCategory {
 			categoryOverwrites = buildCategoryPermissionOverwrites(roleID, mentorRoleId, guildID)
 			// vc権限をカテゴリ権限で上書き
-			overwrites = categoryOverwrites
+			vcOverwrites = categoryOverwrites
 		}
 
 		// カテゴリ作成または取得
@@ -338,7 +338,7 @@ func main() {
 			if err != nil {
 				log.Printf("[ERROR] find VC channel: %s - %v", teamName, err)
 			} else {
-				err = updateChannelPermissions(dg, vcID, overwrites)
+				err = updateChannelPermissions(dg, vcID, vcOverwrites)
 				if err != nil {
 					log.Printf("[ERROR] update VC permission: %s - %v", teamName, err)
 				} else {
@@ -368,19 +368,12 @@ func main() {
 				log.Printf("[ERROR] Text channel create: %s - %v", teamName, err)
 			}
 
-			voiceChannelData := discordgo.GuildChannelCreateData{
-				Name:     "会話",
-				Type:     discordgo.ChannelTypeGuildVoice,
-				ParentID: categoryID,
-			}
-
-			// プライベートカテゴリが無効な場合は、ボイスチャンネルに個別の権限を設定する
-			// (プライベートカテゴリが有効な場合は、カテゴリの権限を継承するため設定不要)
-			if !enablePrivateCategory {
-				voiceChannelData.PermissionOverwrites = overwrites
-			}
-
-			_, err = dg.GuildChannelCreateComplex(guildID, voiceChannelData)
+			_, err = dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
+				Name:                 "会話",
+				Type:                 discordgo.ChannelTypeGuildVoice,
+				ParentID:             categoryID,
+				PermissionOverwrites: vcOverwrites,
+			})
 			if err != nil {
 				log.Printf("[ERROR] Voice channel create: %s - %v", teamName, err)
 			}
