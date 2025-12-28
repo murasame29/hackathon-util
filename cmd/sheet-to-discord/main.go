@@ -171,6 +171,18 @@ func buildCategoryPermissionOverwrites(teamRoleID, mentorRoleID, guildID string)
 	return overwrites
 }
 
+func buildPublicPermissionOverwrites(guildId string) []*discordgo.PermissionOverwrite {
+	return []*discordgo.PermissionOverwrite{
+		{
+			// 更新時、nilを渡すとomitemptyにより無視されるため、明示的に@everyoneの権限を設定
+			ID:    guildId,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  0,
+			Allow: discordgo.PermissionViewChannel,
+		},
+	}
+}
+
 func findVoiceChannelID(channels []*discordgo.Channel, categoryID string) (string, error) {
 	for _, ch := range channels {
 		if ch.Name == "会話" && ch.ParentID == categoryID && ch.Type == discordgo.ChannelTypeGuildVoice {
@@ -242,7 +254,7 @@ func main() {
 	participantsRoleId, mentorRoleId, _ := createParticipantsRole(dg, guildID, eventName, existingRoles, mentionable)
 
 	// チャンネルの権限設定
-	var overwrites []*discordgo.PermissionOverwrite
+	overwrites := buildPublicPermissionOverwrites(guildID)
 	if enablePrivateVC {
 		overwrites = buildVCPermissionOverwrites(participantsRoleId, mentorRoleId, guildID)
 	}
@@ -278,7 +290,7 @@ func main() {
 		}
 
 		// カテゴリの権限設定
-		var categoryOverwrites []*discordgo.PermissionOverwrite
+		categoryOverwrites := buildPublicPermissionOverwrites(guildID)
 		if enablePrivateCategory {
 			categoryOverwrites = buildCategoryPermissionOverwrites(roleID, mentorRoleId, guildID)
 		}
