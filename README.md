@@ -13,12 +13,23 @@ Googleスプレッドシートからチーム情報を読み取り、Discordに�
 
 **機能:**
 - 全参加者用の共通ロール`@参加者_{EVENT_NAME}`の付与
-- メンター用ロール`@メンター_{EVENT_ROLE}`の作成
+- メンター用ロール`@メンター_{EVENT_NAME}`の作成
 - チームごとのロール作成
 - チームごとのカテゴリ作成（テキストチャンネル「やりとり」とボイスチャンネル「会話」を含む）
-  - ボイスチャンネル「会話」は、全参加者用ロールまたはメンター用ロールを持っている人のみに表示
+  - オプション`PRIVATE_VC`でボイスチャンネル「会話」は、全参加者用ロールまたはメンター用ロールを持っている人のみに表示する
+  - オプション`PRIVATE_CATEGORY`でチームカテゴリは、該当チームロールまたはメンター用ロールを持っている人のみに表示する（他チームのカテゴリが非表示になる）
 - メンバーへのロール自動付与
-- Discord上に存在しないユーザーの一覧表示
+- Discord 上に存在しないユーザーの一覧表示
+
+**環境変数による権限設定:**
+
+| `PRIVATE_CATEGORY` | `PRIVATE_VC` | `#やりとり`                   | `#会話`                       |
+| ------------------ | ------------ | ----------------------------- | ----------------------------- |
+| `false`            | `false`      | `@everyone`                   | `@everyone`                   |
+| `false`            | `true`       | `@everyone`                   | 参加者ロール + メンターロール |
+| `true`             | true/false   | チームロール + メンターロール | チームロール + メンターロール |
+
+※ `PRIVATE_CATEGORY=true` の場合、`PRIVATE_VC` の設定は上書きされます
 
 **実行方法:**
 
@@ -26,6 +37,12 @@ Googleスプレッドシートからチーム情報を読み取り、Discordに�
 
 ```bash
 go run cmd/sheet-to-discord/main.go
+
+# ボイスチャンネル「会話」のみをプライベートチャンネルにする
+PRIVATE_VC=true go run cmd/sheet-to-discord/main.go
+
+# カテゴリをプライベートにする
+PRIVATE_CATEGORY=true go run cmd/sheet-to-discord/main.go
 ```
 
 ### cmd/sheet-to-discord-delete
