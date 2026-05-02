@@ -144,7 +144,14 @@ func buildVCPermissionOverwrites(participantsRoleID, mentorRoleID, guildID strin
 	return overwrites
 }
 
-func buildCategoryPermissionOverwrites(teamRoleID, mentorRoleID, guildID string) []*discordgo.PermissionOverwrite {
+const muteRoleDeny = discordgo.PermissionSendMessages |
+	discordgo.PermissionCreatePublicThreads |
+	discordgo.PermissionCreatePrivateThreads |
+	discordgo.PermissionAddReactions |
+	discordgo.PermissionVoiceConnect |
+	discordgo.PermissionVoiceSpeak
+
+func buildCategoryPermissionOverwrites(teamRoleID, mentorRoleID, guildID, muteRoleID string) []*discordgo.PermissionOverwrite {
 	overwrites := []*discordgo.PermissionOverwrite{
 		{
 			// @everyone
@@ -167,6 +174,14 @@ func buildCategoryPermissionOverwrites(teamRoleID, mentorRoleID, guildID string)
 			Deny:  0,
 			Allow: discordgo.PermissionViewChannel,
 		},
+	}
+	if muteRoleID != "" {
+		overwrites = append(overwrites, &discordgo.PermissionOverwrite{
+			ID:    muteRoleID,
+			Type:  discordgo.PermissionOverwriteTypeRole,
+			Deny:  muteRoleDeny,
+			Allow: 0,
+		})
 	}
 	return overwrites
 }
@@ -219,6 +234,7 @@ func main() {
 	eventName := os.Getenv("EVENT_NAME")
 	enablePrivateVC := getenvBool("PRIVATE_VC", false)
 	enablePrivateCategory := getenvBool("PRIVATE_CATEGORY", false)
+	muteRoleID := os.Getenv("VORTEX_MUTEROLE_ID")
 
 	if spreadsheetID == "" || botToken == "" || guildID == "" || credentialsFile == "" || teamRange == "" || eventName == "" {
 		log.Fatal("One or more required environment variables are not set.")
@@ -300,7 +316,7 @@ func main() {
 		// カテゴリの権限設定
 		categoryOverwrites := buildPublicPermissionOverwrites(guildID)
 		if enablePrivateCategory {
-			categoryOverwrites = buildCategoryPermissionOverwrites(roleID, mentorRoleId, guildID)
+			categoryOverwrites = buildCategoryPermissionOverwrites(roleID, mentorRoleId, guildID, muteRoleID)
 			// vc権限をカテゴリ権限で上書き
 			vcOverwrites = categoryOverwrites
 		}
