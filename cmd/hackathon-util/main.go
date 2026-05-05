@@ -44,7 +44,9 @@ func main() {
 
 // newCreateCmd builds the "create" sub-command.
 func newCreateCmd(manifestFile *string) *cobra.Command {
-	return &cobra.Command{
+	var dryRun bool
+
+	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create Discord roles, categories, and channels from a Google Sheet",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -60,10 +62,14 @@ func newCreateCmd(manifestFile *string) *cobra.Command {
 
 			return create.Run(create.Config{
 				BotToken: botToken,
+				DryRun:   dryRun,
 				Cfg:      cfg,
 			})
 		},
 	}
+
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "preview changes without applying them (reads from Discord/Sheets API but skips writes)")
+	return cmd
 }
 
 // newDeleteCmd builds the "delete" sub-command.
@@ -94,7 +100,7 @@ func newDeleteCmd(manifestFile *string) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&dryRun, "dry-run", true, "preview changes without applying them")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "preview changes without applying them (reads from Discord/Sheets API but skips writes)")
 	cmd.Flags().BoolVar(&removeAllMembers, "remove-all-members", false, "also remove the participants role from all members")
 
 	return cmd

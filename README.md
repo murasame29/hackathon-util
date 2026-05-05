@@ -28,7 +28,7 @@ YAMLマニフェストとサブコマンドで操作する新しいCLI。`create
   - スプレッドシートに記載されたチームのカテゴリ・配下チャンネルを削除
   - チームロールをメンバーから剥奪し、ロール自体を削除
   - `--remove-all-members` で全参加者ロール `@参加者_{EVENT_NAME}` からメンバーを剥奪（ロール自体は削除しない）
-  - `--dry-run`（デフォルト: `true`）で実際の削除を行わず対象を確認できる
+  - `--dry-run` で実際の削除を行わず対象を確認できる（デフォルト: `false`）
 
 **YAMLマニフェストによる権限設定:**
 
@@ -46,14 +46,20 @@ YAMLマニフェストとサブコマンドで操作する新しいCLI。`create
 # チャンネル・ロールを作成
 go run cmd/hackathon-util/main.go -f example.yaml create
 
-# ドライラン（デフォルト: --dry-run=true）: 削除対象を確認するだけで実際には削除しない
-go run cmd/hackathon-util/main.go -f example.yaml delete
+# ドライラン: 実際のAPIで確認しつつ書き込みはスキップ
+go run cmd/hackathon-util/main.go -f example.yaml create --dry-run
+
+# チャンネル・ロールを作成
+go run cmd/hackathon-util/main.go -f example.yaml create
+
+# ドライラン: 実際のAPIで確認しつつ削除はスキップ
+go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run
 
 # 実際に削除
-go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run=false
+go run cmd/hackathon-util/main.go -f example.yaml delete
 
 # 参加者ロールからもメンバーを剥奪する場合
-go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run=false --remove-all-members=true
+go run cmd/hackathon-util/main.go -f example.yaml delete --remove-all-members=true
 ```
 
 ---

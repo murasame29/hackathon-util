@@ -12,6 +12,7 @@ import (
 // Config holds runtime options for the create command.
 type Config struct {
 	BotToken string
+	DryRun   bool
 	Cfg      *config.Config
 }
 
@@ -44,17 +45,17 @@ func Run(cc Config) error {
 		return err
 	}
 
-	baseVCOverwrites, participantsRoleID, mentorRoleID := buildBaseOverwrites(dg, cfg, gs)
+	baseVCOverwrites, participantsRoleID, mentorRoleID := buildBaseOverwrites(dg, cfg, gs, cc.DryRun)
 
-	notFoundUsers := processAllTeams(gs, cfg, teamData, mentorRoleID, participantsRoleID, baseVCOverwrites)
+	notFoundUsers := processAllTeams(gs, cfg, teamData, mentorRoleID, participantsRoleID, baseVCOverwrites, cc.DryRun)
 	logNotFoundUsers(notFoundUsers)
 	return nil
 }
 
 // buildBaseOverwrites creates the participants/mentor roles and returns the base VC permission overwrites.
-func buildBaseOverwrites(dg *discordgo.Session, cfg *config.Config, gs *guildState) ([]*discordgo.PermissionOverwrite, string, string) {
+func buildBaseOverwrites(dg *discordgo.Session, cfg *config.Config, gs *guildState, dryRun bool) ([]*discordgo.PermissionOverwrite, string, string) {
 	mentionable := true
-	participantsRoleID, mentorRoleID, _ := createParticipantsRole(dg, cfg.Discord.GuildID, cfg.EventName, gs.existingRoles, mentionable)
+	participantsRoleID, mentorRoleID, _ := createParticipantsRole(dg, cfg.Discord.GuildID, cfg.EventName, gs.existingRoles, mentionable, dryRun)
 
 	baseVCOverwrites := buildPublicPermissionOverwrites(cfg.Discord.GuildID)
 	if cfg.Discord.EnablePrivateVC {
@@ -71,6 +72,7 @@ func processAllTeams(
 	teamData [][]any,
 	mentorRoleID, participantsRoleID string,
 	baseVCOverwrites []*discordgo.PermissionOverwrite,
+	dryRun bool,
 ) []string {
 	mentionable := true
 	var notFoundUsers []string
@@ -82,7 +84,7 @@ func processAllTeams(
 		if teamName == "" {
 			continue
 		}
-		missing := processTeamRow(gs, cfg, row, teamName, mentorRoleID, participantsRoleID, baseVCOverwrites, mentionable)
+		missing := processTeamRow(gs, cfg, row, teamName, mentorRoleID, participantsRoleID, baseVCOverwrites, mentionable, dryRun)
 		notFoundUsers = append(notFoundUsers, missing...)
 		slog.Info("team processed", slog.String("team", teamName))
 	}
