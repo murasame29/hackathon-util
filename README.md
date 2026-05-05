@@ -8,31 +8,67 @@
 
 ## 提供ツール
 
-### cmd/sheet-to-discord
+### cmd/hackathon-util（推奨）
 
-Googleスプレッドシートからチーム情報を読み取り、Discordにロール・カテゴリ・チャンネルを自動生成するスクリプト
+YAMLマニフェストとサブコマンドで操作する新しいCLI。`create` と `delete` の2つのサブコマンドを持つ。
 
 **機能:**
-- 全参加者用の共通ロール `@参加者_{EVENT_NAME}` の作成・付与
-- メンター用ロール `@メンター_{EVENT_NAME}` の作成（色: #3498db）
-- チームごとのロール作成
-- チームごとのカテゴリ作成（テキストチャンネル「やりとり」とボイスチャンネル「会話」を含む）
-  - カテゴリ・チャンネルがすでに存在する場合は権限のみ更新
-  - `PRIVATE_VC=true` でボイスチャンネル「会話」を参加者ロール・メンターロール保持者のみに表示
-  - `PRIVATE_CATEGORY=true` でカテゴリ全体をチームロール・メンターロール保持者のみに表示
-  - `VORTEX_MUTEROLE_ID` を設定すると、そのロールに対してメッセージ送信・リアクション・VC接続などを禁止
-- スプレッドシートの各行 B〜F列のユーザー名（最大5名）にチームロールと参加者ロールを付与
-- Discord上に存在しないユーザーの一覧を実行後に表示
+- `create` サブコマンド
+  - 全参加者用の共通ロール `@参加者_{EVENT_NAME}` の作成・付与
+  - メンター用ロール `@メンター_{EVENT_NAME}` の作成（色: #3498db）
+  - チームごとのロール作成
+  - チームごとのカテゴリ作成（テキストチャンネル「やりとり」とボイスチャンネル「会話」を含む）
+    - カテゴリ・チャンネルがすでに存在する場合は権限のみ更新
+    - `enablePrivateVC: true` でボイスチャンネル「会話」を参加者ロール・メンターロール保持者のみに表示
+    - `enablePrivateCategory: true` でカテゴリ全体をチームロール・メンターロール保持者のみに表示
+    - `muteRoleID` を設定すると、そのロールに対してメッセージ送信・リアクション・VC接続などを禁止
+  - スプレッドシートの各行 B〜F列のユーザー名（最大5名）にチームロールと参加者ロールを付与
+  - Discord上に存在しないユーザーの一覧を実行後に表示
+- `delete` サブコマンド
+  - スプレッドシートに記載されたチームのカテゴリ・配下チャンネルを削除
+  - チームロールをメンバーから剥奪し、ロール自体を削除
+  - `--remove-all-members` で全参加者ロール `@参加者_{EVENT_NAME}` からメンバーを剥奪（ロール自体は削除しない）
+  - `--dry-run` で実際の削除を行わず対象を確認できる（デフォルト: `false`）
 
-**環境変数による権限設定:**
+**YAMLマニフェストによる権限設定:**
 
-| `PRIVATE_CATEGORY` | `PRIVATE_VC` | `#やりとり`                   | `#会話`                       |
-| ------------------ | ------------ | ----------------------------- | ----------------------------- |
-| `false`            | `false`      | `@everyone`                   | `@everyone`                   |
-| `false`            | `true`       | `@everyone`                   | 参加者ロール + メンターロール |
-| `true`             | true/false   | チームロール + メンターロール | チームロール + メンターロール |
+| `enablePrivateCategory` | `enablePrivateVC` | `#やりとり`                   | `#会話`                       |
+| ----------------------- | ----------------- | ----------------------------- | ----------------------------- |
+| `false`                 | `false`           | `@everyone`                   | `@everyone`                   |
+| `false`                 | `true`            | `@everyone`                   | 参加者ロール + メンターロール |
+| `true`                  | true/false        | チームロール + メンターロール | チームロール + メンターロール |
 
-※ `PRIVATE_CATEGORY=true` の場合、`PRIVATE_VC` の設定は上書きされます
+※ `enablePrivateCategory: true` の場合、`enablePrivateVC` の設定は上書きされます
+
+**実行方法:**
+
+```bash
+# チャンネル・ロールを作成
+go run cmd/hackathon-util/main.go -f example.yaml create
+
+# ドライラン: 実際のAPIで確認しつつ書き込みはスキップ
+go run cmd/hackathon-util/main.go -f example.yaml create --dry-run
+
+# チャンネル・ロールを作成
+go run cmd/hackathon-util/main.go -f example.yaml create
+
+# ドライラン: 実際のAPIで確認しつつ削除はスキップ
+go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run
+
+# 実際に削除
+go run cmd/hackathon-util/main.go -f example.yaml delete
+
+# 参加者ロールからもメンバーを剥奪する場合
+go run cmd/hackathon-util/main.go -f example.yaml delete --remove-all-members=true
+```
+
+---
+
+### cmd/sheet-to-discord（旧実装）
+
+> **非推奨:** 新しい `cmd/hackathon-util` の使用を推奨します。
+
+Googleスプレッドシートからチーム情報を読み取り、Discordにロール・カテゴリ・チャンネルを自動生成するスクリプト
 
 **実行方法:**
 
@@ -49,15 +85,11 @@ PRIVATE_CATEGORY=true go run cmd/sheet-to-discord/main.go
 
 ---
 
-### cmd/sheet-to-discord-delete
+### cmd/sheet-to-discord-delete（旧実装）
+
+> **非推奨:** 新しい `cmd/hackathon-util` の使用を推奨します。
 
 ハッカソン終了後のクリーンアップ用スクリプト
-
-**機能:**
-- スプレッドシートに記載されたチームのカテゴリ・配下チャンネルを削除
-- チームロールをメンバーから剥奪し、ロール自体を削除
-- `REMOVE_ALL_MEMBERS=true` で全参加者ロール `@参加者_{EVENT_NAME}` からメンバーを剥奪（ロール自体は削除しない）
-- `DRY_RUN=true`（デフォルト）で実際の削除を行わず対象を確認できる
 
 **実行方法:**
 
@@ -76,6 +108,27 @@ DRY_RUN=false REMOVE_ALL_MEMBERS=true go run cmd/sheet-to-discord-delete/main.go
 
 ## セットアップ
 
+### YAMLマニフェストを作成
+
+`example.yaml` をコピーして編集する。
+
+```bash
+cp example.yaml config.yaml
+```
+
+```yaml
+eventName: "hoge"
+googleSheet:
+  id: "hoge"
+  teamTableRange: "hoge!A:Z"
+  credentialFile: "./credential.json"
+discord:
+  guildID: "hoge"
+  muteRoleID: "hoge"       # 省略可
+  enablePrivateVC: false
+  enablePrivateCategory: false
+```
+
 ### 環境変数を設定
 
 ```bash
@@ -86,17 +139,17 @@ cp .env.example .env
 
 | 変数名 | 必須 | 説明 |
 |---|---|---|
-| `GOOGLE_SPREADSHEET_ID` | ✅ | 対象のスプレッドシートID |
-| `TEAM_RANGE` | ✅ | チーム情報の範囲（例: `チームシート!A2:F15`） |
-| `GOOGLE_CREDENTIALS_FILE` | ✅ | Google認証情報ファイルのパス |
-| `EVENT_NAME` | ✅ | イベント名。参加者・メンターロール名のサフィックスに使用 |
 | `DISCORD_BOT_TOKEN` | ✅ | DiscordのBotトークン |
-| `DISCORD_GUILD_ID` | ✅ | 対象のDiscordサーバーID |
-| `PRIVATE_VC` | - | `true` でボイスチャンネルをプライベートにする（デフォルト: `false`） |
-| `PRIVATE_CATEGORY` | - | `true` でカテゴリをプライベートにする（デフォルト: `false`） |
-| `VORTEX_MUTEROLE_ID` | - | ミュートロールのID。設定するとそのロールの発言・VC接続を禁止 |
-| `DRY_RUN` | - | `sheet-to-discord-delete` 用。`false` で実際に削除（デフォルト: `true`） |
-| `REMOVE_ALL_MEMBERS` | - | `sheet-to-discord-delete` 用。`true` で参加者ロールからもメンバーを剥奪（デフォルト: `false`） |
+| `GOOGLE_SPREADSHEET_ID` | ※旧実装のみ | 対象のスプレッドシートID |
+| `TEAM_RANGE` | ※旧実装のみ | チーム情報の範囲（例: `チームシート!A2:F15`） |
+| `GOOGLE_CREDENTIALS_FILE` | ※旧実装のみ | Google認証情報ファイルのパス |
+| `EVENT_NAME` | ※旧実装のみ | イベント名。参加者・メンターロール名のサフィックスに使用 |
+| `DISCORD_GUILD_ID` | ※旧実装のみ | 対象のDiscordサーバーID |
+| `PRIVATE_VC` | ※旧実装のみ | `true` でボイスチャンネルをプライベートにする（デフォルト: `false`） |
+| `PRIVATE_CATEGORY` | ※旧実装のみ | `true` でカテゴリをプライベートにする（デフォルト: `false`） |
+| `VORTEX_MUTEROLE_ID` | ※旧実装のみ | ミュートロールのID。設定するとそのロールの発言・VC接続を禁止 |
+| `DRY_RUN` | ※旧実装のみ | `sheet-to-discord-delete` 用。`false` で実際に削除（デフォルト: `true`） |
+| `REMOVE_ALL_MEMBERS` | ※旧実装のみ | `sheet-to-discord-delete` 用。`true` で参加者ロールからもメンバーを剥奪（デフォルト: `false`） |
 
 ### スプレッドシートのフォーマット
 

@@ -14,28 +14,34 @@ func ensureTeamCategory(
 	cfg *config.Config,
 	teamName string,
 	categoryOverwrites, vcOverwrites []*discordgo.PermissionOverwrite,
+	dryRun bool,
 ) bool {
-	categoryID, ok := upsertCategory(gs, cfg.Discord.GuildID, teamName, categoryOverwrites)
+	categoryID, ok := upsertCategory(gs, cfg.Discord.GuildID, teamName, categoryOverwrites, dryRun)
 	if !ok {
 		return false
 	}
-	upsertChildChannel(gs, cfg.Discord.GuildID, teamName, categoryID, "やりとり", discordgo.ChannelTypeGuildText, categoryOverwrites)
-	upsertChildChannel(gs, cfg.Discord.GuildID, teamName, categoryID, "会話", discordgo.ChannelTypeGuildVoice, vcOverwrites)
+	upsertChildChannel(gs, cfg.Discord.GuildID, teamName, categoryID, "やりとり", discordgo.ChannelTypeGuildText, categoryOverwrites, dryRun)
+	upsertChildChannel(gs, cfg.Discord.GuildID, teamName, categoryID, "会話", discordgo.ChannelTypeGuildVoice, vcOverwrites, dryRun)
 	return true
 }
 
 // upsertCategory creates the category if absent, otherwise updates its permissions.
-// Returns (categoryID, true) on success.
-func upsertCategory(gs *guildState, guildID, teamName string, overwrites []*discordgo.PermissionOverwrite) (string, bool) {
+// Returns (categoryID, true) on success. In dry-run mode writes are skipped.
+func upsertCategory(gs *guildState, guildID, teamName string, overwrites []*discordgo.PermissionOverwrite, dryRun bool) (string, bool) {
 	if id, exists := gs.existingCategories[teamName]; exists {
-		if err := updateChannelPermissions(gs.dg, id, overwrites); err != nil {
+		if dryRun {
+			slog.Info("dry run: would update category permission", slog.String("team", teamName))
+		} else if err := updateChannelPermissions(gs.dg, id, overwrites); err != nil {
 			slog.Error("update category permission failed", slog.String("team", teamName), slog.String("error.message", err.Error()))
 		} else {
 			slog.Info("category permission updated", slog.String("team", teamName))
 		}
 		return id, true
 	}
-
+	if dryRun {
+		slog.Info("dry run: would create category", slog.String("team", teamName))
+		return "", true
+	}
 	ch, err := gs.dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
 		Name:                 teamName,
 		Type:                 discordgo.ChannelTypeGuildCategory,
@@ -51,21 +57,28 @@ func upsertCategory(gs *guildState, guildID, teamName string, overwrites []*disc
 }
 
 // upsertChildChannel updates permissions if the channel exists, otherwise creates it.
+// In dry-run mode writes are skipped.
 func upsertChildChannel(
 	gs *guildState,
 	guildID, teamName, categoryID, name string,
 	chType discordgo.ChannelType,
 	overwrites []*discordgo.PermissionOverwrite,
+	dryRun bool,
 ) {
 	if id := findChildChannelID(gs.channels, categoryID, name, chType); id != "" {
-		if err := updateChannelPermissions(gs.dg, id, overwrites); err != nil {
+		if dryRun {
+			slog.Info("dry run: would update channel permission", slog.String("team", teamName), slog.String("channel", name))
+		} else if err := updateChannelPermissions(gs.dg, id, overwrites); err != nil {
 			slog.Error("update channel permission failed", slog.String("team", teamName), slog.String("channel", name), slog.String("error.message", err.Error()))
 		} else {
 			slog.Info("channel permission updated", slog.String("team", teamName), slog.String("channel", name))
 		}
 		return
 	}
-
+	if dryRun {
+		slog.Info("dry run: would create channel", slog.String("team", teamName), slog.String("channel", name))
+		return
+	}
 	if _, err := gs.dg.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
 		Name:                 name,
 		Type:                 chType,
