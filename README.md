@@ -46,14 +46,14 @@ YAMLマニフェストとサブコマンドで操作する新しいCLI。`create
 # チャンネル・ロールを作成
 go run cmd/hackathon-util/main.go -f example.yaml create
 
-# ドライラン（デフォルト）: 削除対象を確認するだけで実際には削除しない
+# ドライラン（デフォルト: --dry-run=true）: 削除対象を確認するだけで実際には削除しない
 go run cmd/hackathon-util/main.go -f example.yaml delete
 
 # 実際に削除
 go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run=false
 
 # 参加者ロールからもメンバーを剥奪する場合
-go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run=false --remove-all-members
+go run cmd/hackathon-util/main.go -f example.yaml delete --dry-run=false --remove-all-members=true
 ```
 
 ---
