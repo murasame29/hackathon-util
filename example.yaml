@@ -1,0 +1,10 @@
+eventName: "hoge"
+googleSheet:
+  id: "hoge"
+  teamTableRange: "hoge!A:Z"
+  credentialFile: "./credential.json"
+discord:
+  guildID: "hoge"
+  muteRoleID: "hoge"
+  enablePrivateVC: false
+  enablePrivateCategory: false
